@@ -53,7 +53,7 @@ rosdep install --from-paths src --ignore-src -r -y
    source install/setup.bash
    ```
 
-<!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY -->
+<!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY # Not needed anymore-->
 
 
 ## Usage

@@ -10,3 +10,6 @@
 	path = src/ros2_gmapping
 	url = git@github.com:pierrebrd/ros2_gmapping.git
 	branch = main
+[submodule "src/m-explore-ros2"]
+	path = src/m-explore-ros2
+	url = git@github.com:pierrebrd/m-explore-ros2.git
