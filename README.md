@@ -4,6 +4,9 @@ This project aims to provide a benchmarking suite for exploration algorithms of 
 
 - [Installation guide](#installation-guide)
   - [Requirements](#requirements)
+  - [Cloning the project](#cloning-the-project)
+  - [Installing dependencies](#installing-dependencies)
+  - [Building the package](#building-the-package)
 - [Usage](#usage)
   - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
   - [Benchmark metrics](#benchmark-metrics)
@@ -15,6 +18,43 @@ This project aims to provide a benchmarking suite for exploration algorithms of 
 
 - ROS2 Humble
 <!-- add other dependencies -->
+
+### Cloning the project
+
+```bash
+git clone --recurse-submodules https://github.com/aislabunimi/exploration_benchmarking.git
+cd exploration_benchmarking
+```
+
+### Installing dependencies
+
+```bash
+sudo apt update
+sudo apt install python3-colcon-common-extensions python3-rosdep
+# Stage requirements
+sudo apt-get install git cmake g++ libjpeg8-dev libpng-dev libglu1-mesa-dev libltdl-dev libfltk1.1-dev 
+# Install ROS2 dependencies
+rosdep init
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+```
+
+
+### Building the package
+
+1. First, build the Stage package only and source it:
+   ```bash
+   colcon build --symlink-install --packages-select stage
+   source install/setup.bash
+   ```
+2. Then, build the other packages:
+   ```bash
+   colcon build --symlink-install
+   source install/setup.bash
+   ```
+
+<!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY -->
+
 
 ## Usage
 
