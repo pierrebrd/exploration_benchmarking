@@ -1,10 +1,10 @@
 [submodule "src/stage_ros2"]
 	path = src/stage_ros2
-	url = git@github.com:tuw-robotics/stage_ros2.git
+	url = git@github.com:pierrebrd/stage_ros2.git
 	branch = humble
 [submodule "src/Stage"]
 	path = src/Stage
-	url = git@github.com:tuw-robotics/Stage.git
+	url = git@github.com:pierrebrd/Stage.git
 	branch = ros2
 [submodule "src/ros2_gmapping"]
 	path = src/ros2_gmapping
