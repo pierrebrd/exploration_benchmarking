@@ -2,3 +2,7 @@
 	path = src/stage_ros2
 	url = git@github.com:tuw-robotics/stage_ros2.git
 	branch = humble
+[submodule "src/Stage"]
+	path = src/Stage
+	url = git@github.com:tuw-robotics/Stage.git
+	branch = ros2
