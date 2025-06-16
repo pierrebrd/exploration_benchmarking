@@ -1,15 +1,15 @@
 [submodule "src/stage_ros2"]
-	path = src/stage_ros2
+	path = ros2_simulation/src/stage_ros2
 	url = git@github.com:pierrebrd/stage_ros2.git
 	branch = humble
 [submodule "src/Stage"]
-	path = src/Stage
+	path = ros2_simulation/src/Stage
 	url = git@github.com:pierrebrd/Stage.git
 	branch = ros2
 [submodule "src/ros2_gmapping"]
-	path = src/ros2_gmapping
+	path = ros2_simulation/src/ros2_gmapping
 	url = git@github.com:pierrebrd/ros2_gmapping.git
 	branch = main
 [submodule "src/m-explore-ros2"]
-	path = src/m-explore-ros2
+	path = ros2_simulation/src/m-explore-ros2
 	url = git@github.com:pierrebrd/m-explore-ros2.git

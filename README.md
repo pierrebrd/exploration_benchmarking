@@ -2,14 +2,18 @@
 
 This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite launches multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the logs + map snapshots for further analysis of the runs.
 
+This project's root folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, and the folder also contains python scripts to run the benchmarks and analyze the results.
+
 - [Installation guide](#installation-guide)
   - [Requirements](#requirements)
   - [Cloning the project](#cloning-the-project)
   - [Installing dependencies](#installing-dependencies)
   - [Building the package](#building-the-package)
 - [Usage](#usage)
-  - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
-  - [Benchmark metrics](#benchmark-metrics)
+  - [Simulation](#simulation)
+    - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
+  - [Benchmarking](#benchmarking)
+    - [Benchmark metrics](#benchmark-metrics)
 
 ## Installation guide
 
@@ -58,12 +62,17 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ## Usage
 
-
-### Exploration algorithm inputs and outputs
-
-A `.launch.py` file is used to launch the benchmark, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm by calling its own launch file. The exploration algorithm has its own parameters managed in its launch file, as well as generic parameters set in the main benchmark launch file.
+### Simulation
 
 
-### Benchmark metrics
+#### Exploration algorithm inputs and outputs
+
+A `.launch.py` file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm by calling its own launch file. The exploration algorithm has its own parameters managed in its launch file, as well as generic parameters set in the main launch file.
+
+### Benchmarking
+
+After the simulation is finished, a benchmarking script analyze the results (rosbags, maps, etc.) and returns the results according to defined metrics. 
+
+#### Benchmark metrics
 
 <!-- TODO -->
