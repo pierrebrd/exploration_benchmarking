@@ -57,6 +57,8 @@ CATKIN_IGNORE
 
 # Local env 
 
+# jetbrains
+.idea/
 
 # VSCode
 .vscode/

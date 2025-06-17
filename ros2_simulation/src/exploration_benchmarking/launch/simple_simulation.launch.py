@@ -1,9 +1,15 @@
 # Simple launch file to launch a simulation without the benchmarking part.
 # TODO : try it ;)
 
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction
-from launch.substitutions import LaunchConfiguration
+from timeit import Timer
+from launch import LaunchContext, LaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    GroupAction,
+    ExecuteProcess,
+)
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare, FindPackagePrefix
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -38,6 +44,12 @@ def generate_launch_description():
             "params.yaml",
         ),
     )
+    # Buggy, not used.
+    # I should do a sh script to launch ros2 bag, because here I have so many issues with the arguments
+    rosbag_topics = LaunchConfiguration("rosbag_topics")
+    rosbag_topics_arg = DeclareLaunchArgument(
+        "rosbag_topics", default_value="/scan /tf /tf_static"
+    )
 
     log_level = LaunchConfiguration("log_level")
     log_level_arg = DeclareLaunchArgument(
@@ -46,6 +58,31 @@ def generate_launch_description():
         description="Log level for the nodes. To use debug without showing the rcl logs, use 'debug --log_level rcl:=warn'",
     )
     # TODO: add rviz parameters
+
+    # Launch Rosbag2 recording
+    rosbag2_topics_list = [
+        "/odom",  # robot odometry, probably not needed
+        "/ground_truth",  # ground truth robot position
+        "/rosout",  # logs
+        "/goal_sent",  # goals sent by the exploration algorithm
+        "/clock",  # clock, to use sim time
+        # "/base_scan",
+        # "/tf",
+        # "/tf_static",
+        # "-a",
+    ]
+
+    rosbag2_node = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "bag",
+            "record",
+            "--log-level",
+            log_level,
+        ]
+        + rosbag2_topics_list,
+        output="screen",
+    )
 
     # Launch Stage
     stage_ros2_share = FindPackageShare("stage_ros2").find("stage_ros2")
@@ -111,15 +148,24 @@ def generate_launch_description():
     )
 
     # Return the LaunchDescription
-    return LaunchDescription(
-        [
-            use_sim_time_arg,
-            log_level_arg,
-            nav2_params_file_arg,
-            exploration_params_file_arg,
-            stage_launch,
-            slam_node,
-            nav2_navigation_launch,
-            explore_node,
-        ]
-    )
+    # To ensure the order of the nodes, we use a 2s timer between each launch
+
+    args_list = [
+        use_sim_time_arg,
+        log_level_arg,
+        nav2_params_file_arg,
+        exploration_params_file_arg,
+        rosbag_topics_arg,
+    ]
+    launch_list_ordered = [
+        rosbag2_node,
+        stage_launch,
+        slam_node,
+        nav2_navigation_launch,
+        explore_node,
+    ]
+    delayed_launch_list = [
+        TimerAction(period=2.0 * index, actions=[action])
+        for index, action in enumerate(launch_list_ordered)
+    ]
+    return LaunchDescription(args_list + delayed_launch_list)
