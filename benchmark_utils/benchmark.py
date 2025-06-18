@@ -14,12 +14,6 @@ import tf2_msgs.msg
 
 VERBOSE = False
 
-current_time = 0.0
-messages = []
-# List of goal, the time at which they were sent, and the time at which they were reached
-goals = []
-robot_path = []
-
 
 def read_rosbag2(file_path):
     """return a list of all the messages, in the form (topic, msg, timestamp)"""
@@ -50,8 +44,14 @@ def read_rosbag2(file_path):
 def process_messages(messages):
     """Read the messages and select the appropriate action for each message"""
 
-    global current_time
-    global goals
+    # List of goal, the time at which they were sent, and the time at which they were reached
+    goals = []
+
+    robot_path = []
+    current_time = 0.0  # Initialize current time
+    start_time = None
+    end_time = None
+    # previous_pose = None  # used to determine when the robot actually starts moving
 
     for topic, data, timestamp in messages:
         if topic == "/clock":
@@ -59,11 +59,15 @@ def process_messages(messages):
             current_time = data.clock.sec + data.clock.nanosec * 1e-9
             if VERBOSE:
                 print(f"Current time updated: {current_time}s")
+
         elif topic == "/goal_sent":
             # Add the goal and the timestamp to the message.
             goals.append([(data.x, data.y), current_time, None])
+            if not start_time:
+                start_time = current_time
             if VERBOSE:
                 print(f"Goal sent at {current_time}s: {data.x}, {data.y}")
+
         elif topic == "/goal_reached":
             # Find the goal that was reached and update its time
             # It should be last goal of the list
@@ -85,6 +89,8 @@ def process_messages(messages):
                 print(
                     f"Warning: Goal reached signal received at {current_time} but no matching goal found"
                 )
+            # We update the end_time of the exploration
+            end_time = current_time
 
         elif topic == "/ground_truth":
             # We save the ground truth position of the robot
@@ -102,9 +108,10 @@ def process_messages(messages):
                     f"{data.pose.pose.position.x}, {data.pose.pose.position.y}"
                 )
 
+    return (robot_path, goals, start_time, end_time)
+
 
 def main():
-    global messages
     global VERBOSE
 
     if len(sys.argv) < 2:
@@ -118,7 +125,15 @@ def main():
 
     messages = read_rosbag2(file_path)
 
-    process_messages(messages)
+    robot_path, goals, start_time, end_time = process_messages(messages)
+
+    print(goals)
+    print(start_time, end_time)
+    if start_time and end_time:
+        print(
+            f"Exploration started at {start_time}s and ended at {end_time}s, "
+            f"total duration: {end_time - start_time}s"
+        )
 
     # for topic, data, timestamp in messages:
     #     print(f"Topic: {topic}, Timestamp: {timestamp}")

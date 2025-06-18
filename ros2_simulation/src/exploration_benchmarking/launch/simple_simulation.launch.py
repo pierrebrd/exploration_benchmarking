@@ -139,7 +139,7 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time},
         ],
         remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
-        arguments=["--ros-args", "--log-level", "debug", "--log-level", "rcl:=warn"],
+        arguments=["--ros-args", "--log-level", "info", "--log-level", "rcl:=warn"],
     )
 
     # Return the LaunchDescription
