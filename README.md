@@ -11,7 +11,7 @@ This project's root folder is a ROS2 workspace that contains the packages and la
   - [Building the package](#building-the-package)
 - [Usage](#usage)
   - [Simulation](#simulation)
-    - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
+  - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
   - [Benchmarking](#benchmarking)
     - [Benchmark metrics](#benchmark-metrics)
 
@@ -20,8 +20,8 @@ This project's root folder is a ROS2 workspace that contains the packages and la
 
 ### Requirements
 
-- ROS2 Humble
-<!-- add other dependencies -->
+- ROS2 Humble on Ubuntu 22.04 Jammy
+<!-- TODO add other dependencies -->
 
 ### Cloning the project
 
@@ -46,6 +46,8 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ### Building the package
 
+<!-- TODO: not sure that building stage alone first is necessary -->
+
 1. First, build the Stage package only and source it:
    ```bash
    colcon build --symlink-install --packages-select stage
@@ -62,17 +64,45 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ## Usage
 
+
+
 ### Simulation
 
+The `simulation_exploration.launch.py` launch file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm. It also launches rosbag2 to record the topics needed for the benchmarking.
 
-#### Exploration algorithm inputs and outputs
+Future: different launch file for the exploration part. The exploration algorithm should have its own parameters managed in its launch file, as well as generic parameters set in the main launch file.
 
-A `.launch.py` file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm by calling its own launch file. The exploration algorithm has its own parameters managed in its launch file, as well as generic parameters set in the main launch file.
+### Exploration algorithm inputs and outputs
+
+The exploration algorithm should subscribe to the following topics:
+- `/map` (nav_msgs/msg/OccupancyGrid): the map of the environment
+- `explore/resume` (std_msgs/msg/Bool): a boolean to stop the exploration (`False`) or to resume it (`True`)
+  
+Those topics are optional:
+- `map_updates` (nav_msgs/msg/OccupancyGrid): the map updates
+- `/clock` (rosgraph_msgs/msg/Clock): clock topic used to synchronize nodes when using simulation time to speed up the simulation
+
+The exploration algorithm should publish the following topics:
+- `goal_sent` (geometry_msgs/msg/Point), when a goal is sent to the navigation stack
+- `goal_reached` (geometry_msgs/msg/Point), when a goal is reached by the robot, or when the exploration is stopped manually or automatically (in this case, the Point is (0, 0, 0))
+<!-- TODO: use a different method that goal_reached to indicate the end of the simulation -->
+
 
 ### Benchmarking
 
 After the simulation is finished, a benchmarking script analyze the results (rosbags, maps, etc.) and returns the results according to defined metrics. 
 
+The benchmarking script `benchmark.py` is a simple python script, not a ROS2 node. Launch it in a terminal:
+
+```bash
+python3 benchmark.py relative/path/to/rosbag2/folder [--verbose]
+```
+
 #### Benchmark metrics
+
+Planned metrics:
+- Time to obtain a complete map
+- Time to obtain a sufficiently complete map (e.g. using a criterion similar to the one presented [here](https://aislabunimi.github.io/explore-stop/))
+- Other ideas: difference with ground truth (deformation cost?), back and forth movements, performance in cluttered environments, multirobot exploration, etc.
 
 <!-- TODO -->
