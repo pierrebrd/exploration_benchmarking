@@ -57,12 +57,33 @@ def process_messages(messages):
             # Adjust current_time
             current_time = data.clock.sec + data.clock.nanosec * 1e-9
             if VERBOSE:
-                print(f"Current time updated: {current_time}")
+                print(f"Current time updated: {current_time}s")
         if topic == "/goal_sent":
             # Add the goal and the timestamp to the message.
             goals.append([(data.x, data.y), current_time, None])
             if VERBOSE:
-                print(f"Goal sent at {current_time}: {data.x}, {data.y}")
+                print(f"Goal sent at {current_time}s: {data.x}, {data.y}")
+        if topic == "/goal_reached":
+            # Find the goal that was reached and update its time
+            # It should be last goal of the list
+            # With explore-lite, goals are often cancelled before being reached;
+            # so the information of a goal being reached is not really useful.
+            goal_point = (data.x, data.y)
+            goal_found = False
+            for i in range(len(goals) - 1, -1, -1):
+                if goals[i][0] == goal_point:
+                    # Set the current time as the reached time
+                    goals[i][2] = current_time
+                    goal_found = True
+                    if VERBOSE:
+                        print(
+                            f"Goal reached at {current_time}s, after {current_time-goals[i][1]}s: {goals[i][0]}"
+                        )
+                    break
+            if not goal_found and VERBOSE:
+                print(
+                    f"Warning: Goal reached signal received at {current_time} but no matching goal found"
+                )
 
 
 def main():
