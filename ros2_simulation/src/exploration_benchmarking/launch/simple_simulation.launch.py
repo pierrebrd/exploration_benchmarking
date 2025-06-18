@@ -51,12 +51,6 @@ def generate_launch_description():
         "rosbag_topics", default_value="/scan /tf /tf_static"
     )
 
-    log_level = LaunchConfiguration("log_level")
-    log_level_arg = DeclareLaunchArgument(
-        "log_level",
-        default_value="info",
-        description="Log level for the nodes. To use debug without showing the rcl logs, use 'debug --log_level rcl:=warn'",
-    )
     # TODO: add rviz parameters
 
     # Launch Rosbag2 recording
@@ -65,6 +59,7 @@ def generate_launch_description():
         "/ground_truth",  # ground truth robot position
         "/rosout",  # logs
         "/goal_sent",  # goals sent by the exploration algorithm
+        "/goal_reached",  # goals reached by the exploration algorithm
         "/clock",  # clock, to use sim time
         # "/base_scan",
         # "/tf",
@@ -78,7 +73,7 @@ def generate_launch_description():
             "bag",
             "record",
             "--log-level",
-            log_level,
+            "info",
         ]
         + rosbag2_topics_list,
         output="screen",
@@ -111,7 +106,7 @@ def generate_launch_description():
             }
         ],
         remappings=[("/scan", "/base_scan")],
-        arguments=["--ros-args", "--log-level", log_level],
+        arguments=["--ros-args", "--log-level", "info", "--log-level", "rcl:=warn"],
     )
 
     # Launch Nav2 stack
@@ -127,7 +122,7 @@ def generate_launch_description():
             "namespace": "",
             "autostart": "true",
             "params_file": nav2_params_file,
-            "log_level": log_level,
+            "log_level": "info",
         }.items(),
     )
 
@@ -144,7 +139,7 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time},
         ],
         remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
-        arguments=["--ros-args", "--log-level", log_level],
+        arguments=["--ros-args", "--log-level", "debug", "--log-level", "rcl:=warn"],
     )
 
     # Return the LaunchDescription
@@ -152,7 +147,6 @@ def generate_launch_description():
 
     args_list = [
         use_sim_time_arg,
-        log_level_arg,
         nav2_params_file_arg,
         exploration_params_file_arg,
         rosbag_topics_arg,
