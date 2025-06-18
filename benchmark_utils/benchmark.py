@@ -18,6 +18,7 @@ current_time = 0.0
 messages = []
 # List of goal, the time at which they were sent, and the time at which they were reached
 goals = []
+robot_path = []
 
 
 def read_rosbag2(file_path):
@@ -58,12 +59,12 @@ def process_messages(messages):
             current_time = data.clock.sec + data.clock.nanosec * 1e-9
             if VERBOSE:
                 print(f"Current time updated: {current_time}s")
-        if topic == "/goal_sent":
+        elif topic == "/goal_sent":
             # Add the goal and the timestamp to the message.
             goals.append([(data.x, data.y), current_time, None])
             if VERBOSE:
                 print(f"Goal sent at {current_time}s: {data.x}, {data.y}")
-        if topic == "/goal_reached":
+        elif topic == "/goal_reached":
             # Find the goal that was reached and update its time
             # It should be last goal of the list
             # With explore-lite, goals are often cancelled before being reached;
@@ -83,6 +84,22 @@ def process_messages(messages):
             if not goal_found and VERBOSE:
                 print(
                     f"Warning: Goal reached signal received at {current_time} but no matching goal found"
+                )
+
+        elif topic == "/ground_truth":
+            # We save the ground truth position of the robot
+
+            robot_path.append(
+                (
+                    data.header.stamp.sec + data.header.stamp.nanosec * 1e-9,
+                    (data.pose.pose.position.x, data.pose.pose.position.y),
+                    (data.pose.pose.orientation.z, data.pose.pose.orientation.w),
+                )
+            )
+            if VERBOSE:
+                print(
+                    f"Ground truth position at {data.header.stamp.sec + data.header.stamp.nanosec * 1e-9}s: "
+                    f"{data.pose.pose.position.x}, {data.pose.pose.position.y}"
                 )
 
 
