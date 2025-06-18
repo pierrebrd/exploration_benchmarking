@@ -1,5 +1,4 @@
 # Simple launch file to launch a simulation without the benchmarking part.
-# TODO : try it ;)
 
 from timeit import Timer
 from launch import LaunchContext, LaunchDescription
@@ -15,6 +14,7 @@ from launch_ros.substitutions import FindPackageShare, FindPackagePrefix
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import os
 from launch.actions import TimerAction
+import datetime
 
 
 def generate_launch_description():
@@ -51,7 +51,35 @@ def generate_launch_description():
         "rosbag_topics", default_value="/scan /tf /tf_static"
     )
 
+    map_saver_interval = LaunchConfiguration("map_saver_interval")
+    map_saver_interval_arg = DeclareLaunchArgument(
+        "map_saver_interval",
+        default_value="10.0",
+        description="Interval in seconds to save the map during exploration",
+    )
+    # TODO: put that in a a param file?
+
     # TODO: add rviz parameters
+
+    # Find folder to save rosbags and maps
+    runs_folder = os.path.join(
+        FindPackagePrefix("exploration_benchmarking").find("exploration_benchmarking"),
+        "../../../runs",
+    )
+    if not os.path.exists(runs_folder):
+        os.makedirs(runs_folder)
+    # Create the folder for this run
+    run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M")
+    run_folder = os.path.join(runs_folder, run_name)
+    while os.path.exists(run_folder):
+        run_name += "_1"
+        run_folder = os.path.join(runs_folder, run_name)
+    os.makedirs(run_folder)
+    # Create the necessary subfolders
+    maps_folder = os.path.join(run_folder, "maps")
+    if not os.path.exists(maps_folder):
+        os.makedirs(maps_folder)
+    rosbags_folder = os.path.join(run_folder, "rosbags")
 
     # Launch Rosbag2 recording
     rosbag2_topics_list = [
@@ -68,13 +96,7 @@ def generate_launch_description():
     ]
 
     rosbag2_node = ExecuteProcess(
-        cmd=[
-            "ros2",
-            "bag",
-            "record",
-            "--log-level",
-            "info",
-        ]
+        cmd=["ros2", "bag", "record", "--log-level", "info", "--output", rosbags_folder]
         + rosbag2_topics_list,
         output="screen",
     )
@@ -142,6 +164,21 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "info", "--log-level", "rcl:=warn"],
     )
 
+    # Map saver node
+    # TODO: doesnt work
+    map_saver_node = Node(
+        package="nav2_map_server",
+        executable="map_saver_server",
+        name="map_saver_server",
+        output="screen",
+        parameters=[
+            {"use_sim_time": use_sim_time},
+            {
+                "save_map_timeout": map_saver_interval,
+            },
+        ],
+    )
+
     # Return the LaunchDescription
     # To ensure the order of the nodes, we use a 2s timer between each launch
 
@@ -150,6 +187,7 @@ def generate_launch_description():
         nav2_params_file_arg,
         exploration_params_file_arg,
         rosbag_topics_arg,
+        map_saver_interval_arg,
     ]
     launch_list_ordered = [
         rosbag2_node,
@@ -157,6 +195,7 @@ def generate_launch_description():
         slam_node,
         nav2_navigation_launch,
         explore_node,
+        map_saver_node,
     ]
     delayed_launch_list = [
         TimerAction(period=2.0 * index, actions=[action])
