@@ -68,7 +68,16 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ### Simulation
 
-The `simulation_exploration.launch.py` launch file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm. It also launches rosbag2 to record the topics needed for the benchmarking.
+The `simulation_exploration.launch.py` launch file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm.
+
+To launch the simulation and the recording of the rosbag and maps, run in the ros2_simulation folder:
+
+```bash
+source install/setup.bash
+python3 singlerun.py
+```
+
+
 
 Future: different launch file for the exploration part. The exploration algorithm should have its own parameters managed in its launch file, as well as generic parameters set in the main launch file.
 

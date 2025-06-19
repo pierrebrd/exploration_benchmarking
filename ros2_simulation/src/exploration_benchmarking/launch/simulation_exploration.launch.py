@@ -45,6 +45,9 @@ def generate_launch_description():
         ),
     )
 
+    world = LaunchConfiguration("world")
+    world_arg = DeclareLaunchArgument("world", default_value="cave")
+
     # TODO: put that in a a param file?
 
     # TODO: add rviz parameters
@@ -56,7 +59,7 @@ def generate_launch_description():
             os.path.join(stage_ros2_share, "launch", "stage.launch.py")
         ),
         launch_arguments={
-            "world": "cave",
+            "world": world,
             "enforce_prefixes": "false",
             "use_static_transformations": "true",
             "one_tf_tree": "false",
@@ -119,6 +122,7 @@ def generate_launch_description():
         use_sim_time_arg,
         nav2_params_file_arg,
         exploration_params_file_arg,
+        world_arg,
     ]
     launch_list_ordered = [
         stage_launch,

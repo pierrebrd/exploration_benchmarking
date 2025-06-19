@@ -51,6 +51,8 @@ def launch_rosbag2(topics, folder):
 
 def launch_roslaunchfile(package, launch_file, args):
     cmd = ["ros2", "launch", package, launch_file]
+    if args != "":
+        cmd.append(args)
     print(f"Launching launchfile {package}/{launch_file}...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
@@ -75,7 +77,7 @@ def save_maps(interval, folder, stop_event):
             "-f",
             map_path,
             "--fmt",
-            "pgm",
+            "png",
             "--ros-args",
             "--log-level",
             "info",
@@ -146,7 +148,9 @@ def main():
         map_saver_thread.start()
 
         # Launch the simulation + exploration with the launchfile
-        simulation_args = ""  # string containing the arguments for the launch file, in the form "arg1:=value1 arg2:=value2"
+        world_name = "E34-2"  # Replace with the actual world name
+        world_path = os.path.join(current_directory, "..", "worlds", world_name)
+        simulation_args = f"world:={world_path}"  # string containing the arguments for the launch file, in the form "arg1:=value1 arg2:=value2"
         simulation_exploration_process = launch_roslaunchfile(
             "exploration_benchmarking",
             "simulation_exploration.launch.py",
