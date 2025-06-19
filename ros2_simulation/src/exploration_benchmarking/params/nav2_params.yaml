@@ -301,9 +301,9 @@ global_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: base_scan
-        base_scan:
-          topic: /base_scan
+        observation_sources: scan
+        scan:
+          topic: /scan
           sensor_frame: base_link #laser #base_laser_link
           max_obstacle_height: 0.6 #2.0
           clearing: True
@@ -343,9 +343,9 @@ local_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: base_scan
-        base_scan:
-          topic: /base_scan
+        observation_sources: scan
+        scan:
+          topic: /scan
           #sensor_frame: laser #laser #base_laser_link
           max_obstacle_height: 0.6 #2.0
           clearing: True
@@ -390,10 +390,10 @@ collision_monitor:
       min_points: 6
       visualize: False
       enabled: True
-    observation_sources: ["base_scan"]
-    base_scan:
+    observation_sources: ["scan"]
+    scan:
       type: "scan"
-      topic: "base_scan"
+      topic: "scan"
       min_height: 0.15
       max_height: 2.0
       enabled: True
@@ -462,7 +462,7 @@ loopback_simulator:
     base_frame_id: "base_link"
     odom_frame_id: "odom"
     map_frame_id: "map"
-    scan_frame_id: "base_scan"  # tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
+    scan_frame_id: "scan"  # tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
     update_duration: 0.02
 
 

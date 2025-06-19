@@ -78,7 +78,6 @@ def generate_launch_description():
                 "use_sim_time": use_sim_time,
             }
         ],
-        remappings=[("/scan", "/base_scan")],
         arguments=["--ros-args", "--log-level", "info", "--log-level", "rcl:=warn"],
     )
 

@@ -96,10 +96,32 @@ def save_maps(interval, folder, stop_event):
 
 def main():
 
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+
+    # Parameters
+    rosbag2_topics_list = [
+        "/odom",  # robot odometry
+        "/ground_truth",  # ground truth robot position
+        "/rosout",  # logs, not really useful
+        "/goal_sent",  # goals sent by the exploration algorithmFalse
+        "/goal_reached",  # goals reached by the exploration algorithm
+        "/clock",  # clock, to use sim time
+        "/scan",
+        # "/base_scan",
+        # "/tf",
+        # "/tf_static",
+        # "-a",
+    ]
+    map_saver_interval = 10  # seconds
+    world_name = (
+        "E34-2"  # Replace with the actual world name, without the .world extension.
+    )
+    world_path = os.path.join(current_directory, "..", "worlds", world_name)
+    simulation_args = f"world:={world_path}"  # string containing the arguments for the launch file, in the form "arg1:=value1 arg2:=value2"
+
     try:
 
         # Make folders
-        current_directory = os.path.dirname(os.path.abspath(__file__))
         runs_folder = os.path.join(current_directory, "..", "runs")
         if not os.path.exists(runs_folder):
             os.makedirs(runs_folder)
@@ -123,23 +145,10 @@ def main():
         stop_event = threading.Event()
 
         # We first launch the rosbag2 recording node
-        rosbag2_topics_list = [
-            "/odom",  # robot odometry, probably not needed
-            "/ground_truth",  # ground truth robot position
-            "/rosout",  # logs
-            "/goal_sent",  # goals sent by the exploration algorithmFalse
-            "/goal_reached",  # goals reached by the exploration algorithm
-            "/clock",  # clock, to use sim time
-            # "/base_scan",
-            # "/tf",
-            # "/tf_static",
-            # "-a",
-        ]
         rosbag2_process = launch_rosbag2(rosbag2_topics_list, rosbags_folder)
 
         # Then we launch the map saver server
         # Currently we dont launch a static map saver server, a map saver server is launched and destroyed everytime we call map_saver_cli
-        map_saver_interval = 10  # seconds
         map_saver_thread = threading.Thread(
             target=save_maps,
             args=(map_saver_interval, maps_folder, stop_event),
@@ -148,9 +157,6 @@ def main():
         map_saver_thread.start()
 
         # Launch the simulation + exploration with the launchfile
-        world_name = "E34-2"  # Replace with the actual world name
-        world_path = os.path.join(current_directory, "..", "worlds", world_name)
-        simulation_args = f"world:={world_path}"  # string containing the arguments for the launch file, in the form "arg1:=value1 arg2:=value2"
         simulation_exploration_process = launch_roslaunchfile(
             "exploration_benchmarking",
             "simulation_exploration.launch.py",
