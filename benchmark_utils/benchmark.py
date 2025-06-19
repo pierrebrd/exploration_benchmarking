@@ -8,8 +8,6 @@ import yaml
 import os
 import tf2_msgs.msg
 
-## TODO : the use of global variables is not ideal
-
 ## Global variables
 
 VERBOSE = False
