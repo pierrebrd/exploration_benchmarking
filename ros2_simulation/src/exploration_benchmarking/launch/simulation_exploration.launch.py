@@ -14,6 +14,7 @@ from launch_ros.substitutions import FindPackageShare, FindPackagePrefix
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import os
 from launch.actions import TimerAction
+from launch.conditions import IfCondition
 import datetime
 
 
@@ -47,6 +48,19 @@ def generate_launch_description():
 
     world = LaunchConfiguration("world")
     world_arg = DeclareLaunchArgument("world", default_value="cave")
+
+    launch_rviz = LaunchConfiguration("launch_rviz")
+    launch_rviz_arg = DeclareLaunchArgument(
+        "launch_rviz",
+        default_value="true",
+        description="Launch rviz with the simulation",
+    )
+
+    rviz_config = LaunchConfiguration("rviz_config")
+    rviz_config_arg = DeclareLaunchArgument(
+        "rviz_config",
+        default_value="explore-lite",
+    )
 
     # TODO: put that in a a param file?
 
@@ -114,14 +128,34 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "info", "--log-level", "rcl:=warn"],
     )
 
+    # Rviz
+    rviz_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                FindPackageShare("exploration_benchmarking").find(
+                    "exploration_benchmarking"
+                ),
+                "launch",
+                "basic_rviz.launch.py",
+            )
+        ),
+        condition=IfCondition(launch_rviz),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "config": rviz_config,
+        }.items(),
+    )
+
     # Return the LaunchDescription
-    # To ensure the order of the nodes, we use a 2s timer between each launch
+    # To ensure the order of the simulation nodes, we use a 2s timer between each launch
 
     args_list = [
         use_sim_time_arg,
         nav2_params_file_arg,
         exploration_params_file_arg,
         world_arg,
+        launch_rviz_arg,
+        rviz_config_arg,
     ]
     launch_list_ordered = [
         stage_launch,
@@ -133,4 +167,4 @@ def generate_launch_description():
         TimerAction(period=2.0 * index, actions=[action])
         for index, action in enumerate(launch_list_ordered)
     ]
-    return LaunchDescription(args_list + delayed_launch_list)
+    return LaunchDescription(args_list + [rviz_launch] + delayed_launch_list)
