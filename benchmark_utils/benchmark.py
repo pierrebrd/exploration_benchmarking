@@ -1,5 +1,7 @@
 from pyexpat.errors import messages
 import sys
+
+import evo.main_ape
 import rclpy
 from rclpy.serialization import deserialize_message
 import rosbag2_py
@@ -7,6 +9,10 @@ from rosidl_runtime_py.utilities import get_message
 import yaml
 import os
 import tf2_msgs.msg
+import evo
+import subprocess
+import json
+import zipfile
 
 ## Global variables
 
@@ -37,6 +43,72 @@ def read_rosbag2(file_path):
         msg = deserialize_message(data, msg_type)
         yield topic, msg, timestamp
     del reader
+
+
+def evo_metrics(bag_path, ground_truth_topic, estimated_pose_topic):
+    """
+    Aims to compute the difference between the ground_truth (provided by the simulation) and the estimated pose post-SLAM
+    This is a good indicator of the 'quality of the map'
+    """
+    # We use evo to compute APE (and RPE)
+    # Easiest way I found is to call the bash command directly
+    cmd_ape = [
+        "evo_ape",
+        "bag2",
+        bag_path,
+        ground_truth_topic,
+        estimated_pose_topic,
+        "--save_results",
+        os.path.join(
+            os.path.dirname(bag_path), "../ape_results.zip"
+        ),  # Save results in the same folder as the bag file
+        "--no_warnings",  # Overwrite the existing ape_results.zip file
+    ]
+    subprocess.run(cmd_ape, capture_output=False)
+
+    cmd_rpe = [
+        "evo_rpe",
+        "bag2",
+        bag_path,
+        ground_truth_topic,
+        estimated_pose_topic,
+        "--save_results",
+        os.path.join(
+            os.path.dirname(bag_path), "../rpe_results.zip"
+        ),  # Save results in the same folder as the bag file
+        "--no_warnings",  # Overwrite the existing rpe_results.zip file
+    ]
+    subprocess.run(cmd_rpe, capture_output=True)
+
+    # TODO : set other parameters (--pose_relation? --delta, --delta_tol)
+
+    # Load the results from ape_results.zip
+    try:
+        with zipfile.ZipFile(
+            os.path.join(os.path.dirname(bag_path), "../rpe_results.zip"), "r"
+        ) as zip_ref:
+            with zip_ref.open("stats.json") as stats_file:
+                stats = json.load(stats_file)
+
+        # Return the stats
+        yield stats
+    except Exception as e:
+        print(f"Error loading APE results: {e}")
+        yield None
+
+    # and from rpe_results.zip
+    try:
+        with zipfile.ZipFile(
+            os.path.join(os.path.dirname(bag_path), "../rpe_results.zip"), "r"
+        ) as zip_ref:
+            with zip_ref.open("stats.json") as stats_file:
+                stats = json.load(stats_file)
+
+        # Return the stats
+        yield stats
+    except Exception as e:
+        print(f"Error loading RPE results: {e}")
+        yield None
 
 
 def process_messages(messages):
@@ -119,13 +191,14 @@ def main():
     if len(sys.argv) > 2:
         VERBOSE = sys.argv[2].lower() == "--verbose"
 
-    file_path = sys.argv[1]
+    run_path = sys.argv[1]
+    bag_path = os.path.join(run_path, "rosbags/")
 
-    messages = read_rosbag2(file_path)
+    messages = read_rosbag2(bag_path)
 
     robot_path, goals, start_time, end_time = process_messages(messages)
 
-    print(goals)
+    # print(goals)
     print(start_time, end_time)
     if start_time and end_time:
         print(
@@ -133,9 +206,23 @@ def main():
             f"total duration: {end_time - start_time}s"
         )
 
-    # for topic, data, timestamp in messages:
-    #     print(f"Topic: {topic}, Timestamp: {timestamp}")
+    ape_stats, rpe_stats = evo_metrics(
+        bag_path, "/tf:map.base_link", "/tf:odom.base_link"
+    )
+    if ape_stats:
+        print("APE stats:")
+        print(ape_stats)
+    else:
+        print("No APE stats available or an error occurred.")
+
+    if rpe_stats:
+        print("RPE stats:")
+        print(rpe_stats)
+    else:
+        print("No RPE stats available or an error occurred.")
 
 
 if __name__ == "__main__":
     main()
+
+# TODO: save all the results in a file (json or yaml)

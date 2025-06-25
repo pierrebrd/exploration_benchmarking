@@ -21,6 +21,10 @@ This project's root folder is a ROS2 workspace that contains the packages and la
 ### Requirements
 
 - ROS2 Humble on Ubuntu 22.04 Jammy
+- For the benchmarking, the `evo` python package is required. Can be installed globally (`pip install evo`) or in a conda environment that uses the same python version as ROS2 Humble (python3.10). 
+  
+<!-- TODO make a requirements.txt file for python dependencies -->
+  
 <!-- TODO add other dependencies -->
 
 ### Cloning the project
@@ -105,10 +109,12 @@ After the simulation is finished, a benchmarking script analyze the results (ros
 The benchmarking script `benchmark.py` is a simple python script, not a ROS2 node. Launch it in a terminal:
 
 ```bash
-python3 benchmark.py relative/path/to/rosbag2/folder [--verbose]
+python3 benchmark.py relative/path/to/run/folder [--verbose]
 ```
 
 #### Benchmark metrics
+
+The benchmarking script uses evo to compute APE (Absolute Pose Error) and RPE (Relative Pose Error) metrics
 
 Planned metrics:
 - Time to obtain a complete map
