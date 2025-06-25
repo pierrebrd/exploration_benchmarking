@@ -43,7 +43,16 @@ def explore_worlds(project_path, world_file):
 
 
 def launch_rosbag2(topics, folder):
-    cmd = ["ros2", "bag", "record", "--log-level", "info", "--output", folder] + topics
+    cmd = [
+        "ros2",
+        "bag",
+        "record",
+        "--log-level",
+        "info",
+        "--output",
+        folder,
+        "--use-sim-time",
+    ] + topics
     print("Starting rosbag2 recording...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
@@ -102,14 +111,14 @@ def main():
     rosbag2_topics_list = [
         "/odom",  # robot odometry
         "/ground_truth",  # ground truth robot position
+        "/cmd_vel",
         "/rosout",  # logs, not really useful
         "/goal_sent",  # goals sent by the exploration algorithmFalse
         "/goal_reached",  # goals reached by the exploration algorithm
         "/clock",  # clock, to use sim time
-        "/scan",
-        # "/base_scan",
-        # "/tf",
-        # "/tf_static",
+        # "/scan", # Useful for replaying
+        "/tf",
+        "/tf_static",
         # "-a",
     ]
     map_saver_interval = 10  # seconds
