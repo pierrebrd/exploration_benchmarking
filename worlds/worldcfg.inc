@@ -43,7 +43,7 @@ define pioneer3at position
 
 	# alternative odometric localization with simple error model
 	localization "odom"                 # Change to "gps" to have impossibly perfect, global odometry
-	odom_error [ 0 0 0 0]      # Odometry error or slip in X, Y and Theta (Uniform random distribution)
+	odom_error [ 0 0 0 0]      # Odometry error or slip in X, Y and Theta (Uniform random distribution) # TODO
 	#localization "gps"
 
 
@@ -60,4 +60,4 @@ define pioneer3at position
 )
 
 interval_sim 100  # simulation timestep in milliseconds
-speedup 3
+speedup 3 # TODO

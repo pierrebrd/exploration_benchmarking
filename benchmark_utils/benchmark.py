@@ -45,39 +45,75 @@ def read_rosbag2(file_path):
     del reader
 
 
-def evo_metrics(bag_path, ground_truth_topic, estimated_pose_topic):
+def evo_metrics(run_path, ground_truth_topic, estimated_pose_topic, plot=False):
     """
     Aims to compute the difference between the ground_truth (provided by the simulation) and the estimated pose post-SLAM
     This is a good indicator of the 'quality of the map'
     """
     # We use evo to compute APE (and RPE)
     # Easiest way I found is to call the bash command directly
+
+    # Find the most recent file in the 'maps' directory
+    maps_path = os.path.join(os.path.dirname(run_path), "maps")
+
+    if plot:
+        latest_map_file = None
+        if os.path.isdir(maps_path):
+            map_files = [
+                os.path.join(maps_path, f)
+                for f in os.listdir(maps_path)
+                if os.path.isfile(os.path.join(maps_path, f)) and f.endswith(".yaml")
+            ]
+            if map_files:
+                latest_map_file = max(map_files, key=os.path.getmtime)
+        if not latest_map_file:
+            print(
+                "No map file found in the maps directory. Plotting will not be available."
+            )
+            plot = False
+
     cmd_ape = [
         "evo_ape",
         "bag2",
-        bag_path,
+        os.path.join(os.path.dirname(run_path), "rosbags"),
         ground_truth_topic,
         estimated_pose_topic,
         "--save_results",
         os.path.join(
-            os.path.dirname(bag_path), "../ape_results.zip"
+            os.path.dirname(run_path), "ape_results.zip"
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing ape_results.zip file
     ]
-    subprocess.run(cmd_ape, capture_output=False)
+    if plot:
+        cmd_ape += [
+            "-p",
+            "--plot_mode",
+            "xy",
+            "--ros_map_yaml",
+            latest_map_file,
+        ]
+    subprocess.run(cmd_ape, capture_output=True)
 
     cmd_rpe = [
         "evo_rpe",
         "bag2",
-        bag_path,
+        os.path.join(os.path.dirname(run_path), "rosbags"),
         ground_truth_topic,
         estimated_pose_topic,
         "--save_results",
         os.path.join(
-            os.path.dirname(bag_path), "../rpe_results.zip"
+            os.path.dirname(run_path), "rpe_results.zip"
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing rpe_results.zip file
     ]
+    if plot:
+        cmd_rpe += [
+            "-p",
+            "--plot_mode",
+            "xy",
+            "--ros_map_yaml",
+            latest_map_file,
+        ]
     subprocess.run(cmd_rpe, capture_output=True)
 
     # TODO : set other parameters (--pose_relation? --delta, --delta_tol)
@@ -85,7 +121,7 @@ def evo_metrics(bag_path, ground_truth_topic, estimated_pose_topic):
     # Load the results from ape_results.zip
     try:
         with zipfile.ZipFile(
-            os.path.join(os.path.dirname(bag_path), "../rpe_results.zip"), "r"
+            os.path.join(os.path.dirname(run_path), "ape_results.zip"), "r"
         ) as zip_ref:
             with zip_ref.open("stats.json") as stats_file:
                 stats = json.load(stats_file)
@@ -99,7 +135,7 @@ def evo_metrics(bag_path, ground_truth_topic, estimated_pose_topic):
     # and from rpe_results.zip
     try:
         with zipfile.ZipFile(
-            os.path.join(os.path.dirname(bag_path), "../rpe_results.zip"), "r"
+            os.path.join(os.path.dirname(run_path), "rpe_results.zip"), "r"
         ) as zip_ref:
             with zip_ref.open("stats.json") as stats_file:
                 stats = json.load(stats_file)
@@ -207,7 +243,7 @@ def main():
         )
 
     ape_stats, rpe_stats = evo_metrics(
-        bag_path, "/tf:map.base_link", "/tf:odom.base_link"
+        run_path, "/tf:map.base_link", "/tf:odom.base_link", plot=True
     )
     if ape_stats:
         print("APE stats:")
