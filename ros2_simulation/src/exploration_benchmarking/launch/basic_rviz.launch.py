@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+# DEPRECATED, we don't use this anymore. TODO: remove
 import os
 
 from ament_index_python.packages import get_package_share_directory

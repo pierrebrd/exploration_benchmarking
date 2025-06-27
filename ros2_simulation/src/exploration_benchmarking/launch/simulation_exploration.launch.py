@@ -1,5 +1,7 @@
 # Simple launch file to launch a simulation without the benchmarking part.
 
+# DEPRECATED, we don't use this anymore. TODO: remove
+
 from timeit import Timer
 from launch import LaunchContext, LaunchDescription
 from launch.actions import (
@@ -61,10 +63,6 @@ def generate_launch_description():
         "rviz_config",
         default_value="explore-lite",
     )
-
-    # TODO: put that in a a param file?
-
-    # TODO: add rviz parameters
 
     # Launch Stage
     stage_ros2_share = FindPackageShare("stage_ros2").find("stage_ros2")

@@ -14,6 +14,7 @@ from geometry_msgs.msg import PoseStamped
 
 from visualization_msgs.msg import MarkerArray
 from rclpy.executors import MultiThreadedExecutor
+import yaml
 
 
 def kill_process(p):
@@ -58,13 +59,61 @@ def launch_rosbag2(topics, folder):
     return p
 
 
-def launch_roslaunchfile(package, launch_file, args):
-    cmd = ["ros2", "launch", package, launch_file]
-    if args != "":
-        cmd.append(args)
-    print(f"Launching launchfile {package}/{launch_file}...")
+def launch_roslaunchfile(
+    package, launchfile, params_file=None, launchfile_args=None, ros_args=None
+):
+    cmd = ["ros2", "launch", package, launchfile]
+    if launchfile_args:
+        for key, value in launchfile_args.items():
+            cmd += [f"{key}:={str(value)}"]
+    if params_file:
+        cmd += [f"params_file:={params_file}"]
+    if ros_args:
+        cmd += ["--ros-args"] + ros_args
+
+    print(f"Launching launchfile {package}/{launchfile}...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
+
+
+def launch_rosnode(
+    package, node, params_file=None, other_params=None, args=None, ros_args=None
+):
+    cmd = ["ros2", "run", package, node]
+    if args:
+        cmd += args
+    if params_file:
+        cmd += ["--ros-args", "--params-file", params_file]
+    if other_params:
+        cmd += ["--ros-args"]
+        for key, value in other_params.items():
+            cmd += ["-p", f"{key}:={value}"]
+    if ros_args:
+        cmd += ["--ros-args"] + ros_args
+    print(f"Launching ROS2 node {package}/{node}...")
+    p = subprocess.Popen(cmd, preexec_fn=os.setsid)
+    return p
+
+
+def launch_generic(dict, other_params=None):
+    # TODO : use other_params
+    if dict["is_launch_file"]:
+        process = launch_roslaunchfile(
+            dict["package"],
+            dict["name"],
+            params_file=dict["params_file"],
+            launchfile_args=dict["launchfile_args"],
+            ros_args=dict["ros_args"],
+        )
+    else:
+        process = launch_rosnode(
+            dict["package"],
+            dict["name"],
+            params_file=dict["params_file"],
+            # other_params=,
+            ros_args=dict["ros_args"],
+        )
+    return process
 
 
 def save_maps(interval, folder, stop_event):
@@ -75,8 +124,6 @@ def save_maps(interval, folder, stop_event):
     index = 0
 
     while not stop_event.is_set():
-        print("coucou")
-
         map_path = os.path.join(folder, f"map_{int(index)}")
         save_cmd = [
             "ros2",
@@ -103,37 +150,53 @@ def save_maps(interval, folder, stop_event):
     print("Map saving thread stopping.")
 
 
-def main():
+def main(param_path, project_root):
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
-    # Parameters
-    rosbag2_topics_list = [
-        "/odom",  # robot odometry
-        "/ground_truth",  # ground truth robot position
-        "/cmd_vel",
-        "/rosout",  # logs, not really useful
-        "/goal_sent",  # goals sent by the exploration algorithmFalse
-        "/goal_reached",  # goals reached by the exploration algorithm
-        "/clock",  # clock, to use sim time
-        # "/scan", # Useful for replaying
-        "/tf",
-        "/tf_static",
-        # "-a",
-    ]
-    map_saver_interval = 10  # seconds
-    world_name = (
-        "E34-2"  # Replace with the actual world name, without the .world extension.
-    )
-    world_path = os.path.join(current_directory, "..", "worlds", world_name)
-    simulation_args = f"world:={world_path}"  # string containing the arguments for the launch file, in the form "arg1:=value1 arg2:=value2"
+    # Read Parameters
 
     try:
+        with open(param_path, "r") as f:
+            params = yaml.safe_load(f)
+            # Example: extract variables from the loaded params
+    except Exception as e:
+        print(f"Failed to read parameters file {param_path}: {e}")
+        sys.exit(1)
 
+    assert all(
+        key in params
+        for key in [
+            "world_name",
+            "rosbag2_topics_list",
+            "map_saver_interval",
+            "slam",
+            "exploration",
+            "navigation",
+            "simulation",
+        ]
+    ), "Missing required parameters"
+
+    # Extract parameters
+    world_name = params["world_name"]
+    rosbag2_topics_list = params["rosbag2_topics_list"]
+    map_saver_interval = params["map_saver_interval"]
+    slam = params["slam"]
+    exploration = params["exploration"]
+    navigation = params["navigation"]
+    simulation = params["simulation"]
+
+    # Check if the world file exists
+    world_path = os.path.join(current_directory, "..", "worlds", world_name)
+    simulation["launchfile_args"]["world"] = world_path
+    # TODO : put the world choice in the the simulation params_file instead?
+
+    try:
         # Make folders
         runs_folder = os.path.join(current_directory, "..", "runs")
         if not os.path.exists(runs_folder):
             os.makedirs(runs_folder)
+
         # Create the folder for this run
         run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M")
         run_folder = os.path.join(runs_folder, run_name)
@@ -153,8 +216,34 @@ def main():
         # Init stop event for threads
         stop_event = threading.Event()
 
+        # List to store running processes
+        running_processes = []
+
+        # Launch rviz if specified in the parameters
+        if "rviz_config" in params:
+            try:
+                rviz_config = params["rviz_config"]
+                # rviz_process = launch_roslaunchfile(
+                #     package="exploration_benchmarking",
+                #     launchfile="basic_rviz.launch.py",
+                #     launchfile_args={
+                #         "config": rviz_config,
+                #         "use_sim_time": "true",
+                #     },
+                # )
+                rviz_process = launch_rosnode(
+                    package="rviz2",
+                    node="rviz2",
+                    args=["-d", rviz_config],
+                    other_params={"use_sim_time": "true"},
+                )
+                running_processes.append(rviz_process)
+            except Exception as e:
+                print(f"Failed to launch RViz with config {params['rviz_config']}: {e}")
+
         # We first launch the rosbag2 recording node
         rosbag2_process = launch_rosbag2(rosbag2_topics_list, rosbags_folder)
+        running_processes.append(rosbag2_process)
 
         # Then we launch the map saver server
         # Currently we dont launch a static map saver server, a map saver server is launched and destroyed everytime we call map_saver_cli
@@ -165,19 +254,34 @@ def main():
         )
         map_saver_thread.start()
 
-        # Launch the simulation + exploration with the launchfile
-        simulation_exploration_process = launch_roslaunchfile(
-            "exploration_benchmarking",
-            "simulation_exploration.launch.py",
-            simulation_args,
-        )
+        time.sleep(2)
+
+        # Launch the simulation platform
+        simulation_process = launch_generic(simulation)
+        running_processes.append(simulation_process)
+        time.sleep(2)
+
+        # Launch the SLAM
+        slam_process = launch_generic(slam)
+        running_processes.append(slam_process)
+        time.sleep(2)
+
+        # Launch the navigation stack
+        navigation_process = launch_generic(navigation)
+        running_processes.append(navigation_process)
+        time.sleep(2)
+
+        # Launch the exploration algorithm
+        exploration_process = launch_generic(exploration)
+        running_processes.append(exploration_process)
+        time.sleep(2)
 
         # TODO: completion node, rviz,...
         #
 
-        # Wait for the simulation to complete
-        simulation_exploration_process.wait()
-        print("Simulation process has ended.")
+        # Wait for the exploration to complete
+        exploration_process.wait()
+        print("Exploration process has ended.")
 
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received, shutting down processes...")
@@ -196,21 +300,15 @@ def main():
         except Exception as e:
             print(f"Failed to stop map saver thread: {e}")
 
-        # Kill the simulation process if it's still running
-        try:
-            if simulation_exploration_process.poll() is None:
-                kill_process(simulation_exploration_process)
-                print("Simulation process terminated.")
-        except Exception as e:
-            print(f"Failed to terminate simulation process: {e}")
-
-        # Kill the rosbag recording
-        try:
-            if rosbag2_process.poll() is None:
-                kill_process(rosbag2_process)
-                print("Rosbag recording terminated.")
-        except Exception as e:
-            print(f"Failed to terminate rosbag process: {e}")
+        # Kill the running processes
+        running_processes.reverse()
+        for process in running_processes:
+            try:
+                if process.poll() is None:
+                    kill_process(process)
+                    print(f"{process} terminated.")
+            except Exception as e:
+                print(f"Failed to terminate {process}: {e}")
 
         # Shutdown ROS2
         try:
@@ -227,11 +325,11 @@ def main():
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) < 2:
-    #     print("Usage: python3 singlerun.py path_to_world.world")
-    #     sys.exit(1)
+    if len(sys.argv) < 2:
+        print("Usage: python3 singlerun.py relative_path_to_param.yaml")
+        sys.exit(1)
 
-    # world_path = os.path.abspath(sys.argv[1])
-    # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    param_path = os.path.abspath(sys.argv[1])
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     # explore_worlds(project_root, world_path)
-    main()
+    main(param_path, project_root)
