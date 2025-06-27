@@ -67,6 +67,7 @@ def launch_roslaunchfile(
         for key, value in launchfile_args.items():
             cmd += [f"{key}:={str(value)}"]
     if params_file:
+        # The launchfile should 'listen' to a params_file argument
         cmd += [f"params_file:={params_file}"]
     if ros_args:
         cmd += ["--ros-args"] + ros_args

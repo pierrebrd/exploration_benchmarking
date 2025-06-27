@@ -1,8 +1,8 @@
 # Exploration benchmarking
 
-This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite launches multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the logs + map snapshots for further analysis of the runs.
+This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite launches multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the bags + map snapshots for further analysis of the runs.
 
-This project's root folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, and the folder also contains python scripts to run the benchmarks and analyze the results.
+The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
 
 - [Installation guide](#installation-guide)
   - [Requirements](#requirements)
@@ -41,7 +41,8 @@ sudo apt update
 sudo apt install python3-colcon-common-extensions python3-rosdep
 # Stage requirements
 sudo apt-get install git cmake g++ libjpeg8-dev libpng-dev libglu1-mesa-dev libltdl-dev libfltk1.1-dev 
-# Install ROS2 dependencies
+# Install ROS2 dependencies from the ROS2 workspace
+cd ros2_simulation
 rosdep init
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
@@ -72,19 +73,21 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ### Simulation
 
-The `simulation_exploration.launch.py` launch file is used to launch the simulation, it launches the simulation + navigation stack, and also launches the chosen exploration algorithm as well as a a rviz node.
+The `singlerun.py` script is used to launch a run. It reads the parameters from a YAML file, and launches the desired nodes to have a complete simulation, a visualization (rviz) and to save the results (rosbags, maps, etc.).
 
-To launch the simulation and the recording of the rosbag and maps, run in the ros2_simulation folder:
+For an example of the structure of this YAML file, see: [ros2_simulation/params/example.yaml](ros2_simulation/params/example.yaml)
+
+The run is launched with the following commands:
 
 ```bash
+cd ros2_simulation
 source install/setup.bash
-python3 singlerun.py
+python3 singlerun.py params/example.yaml
 ```
 
-You can edit the parameters directly into the `singlerun.py` script, and some parameters have to be edited in the `simulation_exploration.launch.py` launch file.
+The `params` folder also contains the parameters file for the different parts of the simulation (parameters for nav2, the exploration algorithm, etc.).
 
 
-Future: different launch file for the exploration part. The exploration algorithm should have its own parameters managed in its launch file, as well as generic parameters set in the main launch file.
 
 ### Exploration algorithm inputs and outputs
 
