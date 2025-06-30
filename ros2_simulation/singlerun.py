@@ -15,6 +15,7 @@ from geometry_msgs.msg import PoseStamped
 from visualization_msgs.msg import MarkerArray
 from rclpy.executors import MultiThreadedExecutor
 import yaml
+import shutil
 
 
 def kill_process(p):
@@ -210,6 +211,26 @@ def main(param_path, project_root):
         if not os.path.exists(maps_folder):
             os.makedirs(maps_folder)
         rosbags_folder = os.path.join(run_folder, "rosbags")
+        params_folder = os.path.join(run_folder, "params")
+
+        # Copy the parameters files
+        if not os.path.exists(params_folder):
+            os.makedirs(params_folder)
+        params_dest_path = os.path.join(params_folder, os.path.basename(param_path))
+        try:
+            shutil.copy(param_path, params_dest_path)
+        except Exception as e:
+            print(f"Failed to copy parameter file to {params_dest_path}: {e}")
+        for dict in [slam, exploration, navigation, simulation]:
+            if dict["params_file"]:
+                try:
+                    params_dest_file = os.path.join(run_folder, dict["params_file"])
+                    os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
+                    shutil.copy(dict["params_file"], params_dest_file)
+                except Exception as e:
+                    print(
+                        f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"
+                    )
 
         # Init ROS2
         rclpy.init()
