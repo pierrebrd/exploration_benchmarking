@@ -61,7 +61,12 @@ def launch_rosbag2(topics, folder):
 
 
 def launch_roslaunchfile(
-    package, launchfile, params_file=None, launchfile_args=None, ros_args=None
+    package,
+    launchfile,
+    params_file=None,
+    params_file_argument="params_file",
+    launchfile_args=None,
+    ros_args=None,
 ):
     cmd = ["ros2", "launch", package, launchfile]
     if launchfile_args:
@@ -69,7 +74,7 @@ def launch_roslaunchfile(
             cmd += [f"{key}:={str(value)}"]
     if params_file:
         # The launchfile should 'listen' to a params_file argument
-        cmd += [f"params_file:={params_file}"]
+        cmd += [f"{params_file_argument}:={params_file}"]
     if ros_args:
         cmd += ["--ros-args"] + ros_args
 
@@ -97,23 +102,24 @@ def launch_rosnode(
     return p
 
 
-def launch_generic(dict, other_params=None):
-    # TODO : use other_params
+def launch_generic(dict: dict, other_params=None):
     if dict["is_launch_file"]:
         process = launch_roslaunchfile(
-            dict["package"],
+            dict["package"],  # Will throw an error if the key is not found
             dict["name"],
-            params_file=dict["params_file"],
-            launchfile_args=dict["launchfile_args"],
-            ros_args=dict["ros_args"],
+            params_file=dict.get("params_file", None),
+            params_file_argument=dict.get("params_file_argument", None),
+            launchfile_args=dict.get("launchfile_args", {}),
+            ros_args=dict.get("ros_args", []),
         )
     else:
+        # TODO : use other_params
         process = launch_rosnode(
             dict["package"],
             dict["name"],
-            params_file=dict["params_file"],
+            params_file=dict.get("params_file", None),
             # other_params=,
-            ros_args=dict["ros_args"],
+            ros_args=dict.get("ros_args", []),
         )
     return process
 
@@ -238,7 +244,7 @@ def main(param_path, project_root):
         except Exception as e:
             print(f"Failed to copy parameter file to {params_dest_path}: {e}")
         for dict in [slam, exploration, navigation, simulation]:
-            if dict["params_file"]:
+            if dict.get("params_file", None):
                 try:
                     params_dest_file = os.path.join(run_folder, dict["params_file"])
                     os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
@@ -262,14 +268,6 @@ def main(param_path, project_root):
         if "rviz_config" in params:
             try:
                 rviz_config = params["rviz_config"]
-                # rviz_process = launch_roslaunchfile(
-                #     package="exploration_benchmarking",
-                #     launchfile="basic_rviz.launch.py",
-                #     launchfile_args={
-                #         "config": rviz_config,
-                #         "use_sim_time": "true",
-                #     },
-                # )
                 rviz_process = launch_rosnode(
                     package="rviz2",
                     node="rviz2",
