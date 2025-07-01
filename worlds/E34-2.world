@@ -16,13 +16,13 @@
     name "fp"
     bitmap "img/E34-2.png"
     size [32.63333333333333 18.533333333333335 1]
-    pose [ 0 0 0 0 ]
+    pose [-13.066666666666666 6.1 0 0]
     )
 
     # Put a single robot into the world
     pioneer3at
     (
     name "robot"
-    pose [13.066666666666666 -6.1 0 0]
+    pose [ 0 0 0 0 ]
     )
     
