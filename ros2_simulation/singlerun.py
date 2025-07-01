@@ -149,6 +149,22 @@ def save_maps(interval, folder, stop_event):
             if stop_event.is_set():
                 break
             time.sleep(0.1)
+    # Save final map
+    map_path = os.path.join(folder, f"map_final")
+    save_cmd = [
+        "ros2",
+        "run",
+        "nav2_map_server",
+        "map_saver_cli",
+        "-f",
+        map_path,
+        "--fmt",
+        "png",
+        "--ros-args",
+        "--log-level",
+        "info",
+    ]
+    process = subprocess.Popen(save_cmd, preexec_fn=os.setsid)
     print("Map saving thread stopping.")
 
 
@@ -231,6 +247,7 @@ def main(param_path, project_root):
                     print(
                         f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"
                     )
+        # TODO : maybe dump the params using the ros2 param dump command? for each node ?
 
         # Init ROS2
         rclpy.init()

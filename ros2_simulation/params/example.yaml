@@ -6,7 +6,7 @@ rosbag2_topics_list: [
     "/goal_sent", # goals sent by the exploration algorithmFalse
     "/goal_reached", # goals reached by the exploration algorithm
     "/clock", # clock, to use sim time
-    # "/scan", # Useful for replaying
+    # "/scan", # Useful for replayingl
     "/tf",
     "/tf_static",
     # "-a",
