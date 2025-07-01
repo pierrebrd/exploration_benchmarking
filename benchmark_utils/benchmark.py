@@ -45,10 +45,16 @@ def read_rosbag2(file_path):
     del reader
 
 
-def evo_metrics(run_path, ground_truth_topic, estimated_pose_topic, plot=False):
+def evo_metrics(
+    run_path, ground_truth_topic, estimated_pose_topic, align_origin=False, plot=False
+):
     """
     Aims to compute the difference between the ground_truth (provided by the simulation) and the estimated pose post-SLAM
     This is a good indicator of the 'quality of the map'
+    TODO : currently there is a problem because the ground_truth starts at (0, 0) instead of the initial poisiton of the robot
+    defined in the world file. This results in the ground_truth not "fitting" into the map image. --align_origin is useful to
+    aligh the odom with the ground truth, but then nothing fits into the map image.
+    Possible solution: edit the world file OR use a ground_truth that starts at the initial position OR set a static TF?
     """
     # We use evo to compute APE (and RPE)
     # Easiest way I found is to call the bash command directly
@@ -84,6 +90,8 @@ def evo_metrics(run_path, ground_truth_topic, estimated_pose_topic, plot=False):
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing ape_results.zip file
     ]
+    if align_origin:
+        cmd_ape += ["--align_origin"]
     if plot:
         cmd_ape += [
             "-p",
@@ -106,6 +114,8 @@ def evo_metrics(run_path, ground_truth_topic, estimated_pose_topic, plot=False):
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing rpe_results.zip file
     ]
+    if align_origin:
+        cmd_rpe += ["--align_origin"]
     if plot:
         cmd_rpe += [
             "-p",
@@ -243,7 +253,7 @@ def main():
         )
 
     ape_stats, rpe_stats = evo_metrics(
-        run_path, "/tf:map.base_link", "/tf:odom.base_link", plot=True
+        run_path, "/ground_truth", "/tf:map.base_link", plot=True, align_origin=False
     )
     if ape_stats:
         print("APE stats:")
