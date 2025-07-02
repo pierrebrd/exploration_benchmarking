@@ -1,4 +1,4 @@
-rosbag2_topics_list: [
+rosbag2_recorded_topics: [
     "/odom", # robot odometry
     "/ground_truth", # ground truth robot position
     "/cmd_vel",

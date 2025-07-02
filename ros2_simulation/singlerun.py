@@ -44,7 +44,7 @@ def explore_worlds(project_path, world_file):
     folder = os.path.join(out_dir, world_name)
 
 
-def launch_rosbag2(topics, folder):
+def launch_rosbag2_recording(topics, folder):
     cmd = [
         "ros2",
         "bag",
@@ -56,6 +56,25 @@ def launch_rosbag2(topics, folder):
         "--use-sim-time",
     ] + topics
     print("Starting rosbag2 recording...")
+    p = subprocess.Popen(cmd, preexec_fn=os.setsid)
+    return p
+
+
+def launch_rosbag2_playing(topics, folder, remappings: dict = None):
+    cmd = [
+        "ros2",
+        "bag",
+        "play",
+        "--log-level",
+        "info",
+        folder,
+        "--topics",
+    ] + topics
+    if remappings:
+        cmd += ["--remap"]
+        for key, value in remappings.items():
+            cmd += [f"{key}:={value}"]
+    print("Starting rosbag2 playing...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
 
@@ -174,7 +193,7 @@ def save_maps(interval, folder, stop_event):
     print("Map saving thread stopping.")
 
 
-def main(param_path, project_root):
+def main(param_path):
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -192,7 +211,7 @@ def main(param_path, project_root):
         key in params
         for key in [
             "world_name",
-            "rosbag2_topics_list",
+            "rosbag2_recorded_topics",
             "map_saver_interval",
             "slam",
             "exploration",
@@ -203,12 +222,12 @@ def main(param_path, project_root):
 
     # Extract parameters
     world_name = params["world_name"]
-    rosbag2_topics_list = params["rosbag2_topics_list"]
+    rosbag2_recorded_topics = params["rosbag2_recorded_topics"]
     map_saver_interval = params["map_saver_interval"]
-    slam = params["slam"]
-    exploration = params["exploration"]
-    navigation = params["navigation"]
-    simulation = params["simulation"]
+    slam = params.get("slam", None)
+    exploration = params.get("exploration", None)
+    navigation = params.get("navigation", None)
+    simulation = params.get("simulation", None)
 
     # Check if the world file exists
     world_path = os.path.join(current_directory, "..", "worlds", world_name)
@@ -224,10 +243,15 @@ def main(param_path, project_root):
         # Create the folder for this run
         run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M")
         run_folder = os.path.join(runs_folder, run_name)
+        # Check if the run folder already exists, if so, append _1, _2, etc.
+        i = 1
         while os.path.exists(run_folder):
-            run_name += "_1"
+            run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M") + f"_{i}"
             run_folder = os.path.join(runs_folder, run_name)
+            i += 1
         os.makedirs(run_folder)
+        del i
+
         # Create the necessary subfolders
         maps_folder = os.path.join(run_folder, "maps")
         if not os.path.exists(maps_folder):
@@ -244,7 +268,7 @@ def main(param_path, project_root):
         except Exception as e:
             print(f"Failed to copy parameter file to {params_dest_path}: {e}")
         for dict in [slam, exploration, navigation, simulation]:
-            if dict.get("params_file", None):
+            if dict and dict.get("params_file", None):
                 try:
                     params_dest_file = os.path.join(run_folder, dict["params_file"])
                     os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
@@ -279,7 +303,9 @@ def main(param_path, project_root):
                 print(f"Failed to launch RViz with config {params['rviz_config']}: {e}")
 
         # We first launch the rosbag2 recording node
-        rosbag2_process = launch_rosbag2(rosbag2_topics_list, rosbags_folder)
+        rosbag2_process = launch_rosbag2_recording(
+            rosbag2_recorded_topics, rosbags_folder
+        )
         running_processes.append(rosbag2_process)
 
         # Then we launch the map saver server
@@ -294,27 +320,28 @@ def main(param_path, project_root):
         time.sleep(2)
 
         # Launch the simulation platform
-        simulation_process = launch_generic(simulation)
-        running_processes.append(simulation_process)
-        time.sleep(2)
+        if simulation:
+            simulation_process = launch_generic(simulation)
+            running_processes.append(simulation_process)
+            time.sleep(2)
 
         # Launch the SLAM
-        slam_process = launch_generic(slam)
-        running_processes.append(slam_process)
-        time.sleep(2)
+        if slam:
+            slam_process = launch_generic(slam)
+            running_processes.append(slam_process)
+            time.sleep(2)
 
         # Launch the navigation stack
-        navigation_process = launch_generic(navigation)
-        running_processes.append(navigation_process)
-        time.sleep(2)
+        if navigation:
+            navigation_process = launch_generic(navigation)
+            running_processes.append(navigation_process)
+            time.sleep(2)
 
         # Launch the exploration algorithm
-        exploration_process = launch_generic(exploration)
-        running_processes.append(exploration_process)
-        time.sleep(2)
-
-        # TODO: completion node, rviz,...
-        #
+        if exploration:
+            exploration_process = launch_generic(exploration)
+            running_processes.append(exploration_process)
+            time.sleep(2)
 
         # Wait for the exploration to complete
         exploration_process.wait()
@@ -367,6 +394,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     param_path = os.path.abspath(sys.argv[1])
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     # explore_worlds(project_root, world_path)
-    main(param_path, project_root)
+    main(param_path)
