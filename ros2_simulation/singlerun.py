@@ -44,7 +44,7 @@ def explore_worlds(project_path, world_file):
     folder = os.path.join(out_dir, world_name)
 
 
-def launch_rosbag2_recording(topics, folder):
+def launch_rosbag2_recording(topics, folder, use_sim_time=False):
     cmd = [
         "ros2",
         "bag",
@@ -53,8 +53,9 @@ def launch_rosbag2_recording(topics, folder):
         "info",
         "--output",
         folder,
-        "--use-sim-time",
     ] + topics
+    if use_sim_time:
+        cmd += ["--use-sim-time"]
     print("Starting rosbag2 recording...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
