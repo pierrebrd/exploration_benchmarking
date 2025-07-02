@@ -14,7 +14,8 @@
   <exec_depend>nav2_map_server</exec_depend>
   <exec_depend>stage_ros2</exec_depend>
   <exec_depend>ros2launch</exec_depend>
-  
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>tf2_msgs</exec_depend>
   
 
   <export>

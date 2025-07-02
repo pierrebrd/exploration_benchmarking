@@ -25,6 +25,6 @@ setup(
     description="Launch the benchmarking of an exploration algorithm",
     license="MIT",
     entry_points={
-        "console_scripts": [],
+        "console_scripts": ["tf_filter = exploration_benchmarking.tf_filter_node:main"],
     },
 )
