@@ -1,0 +1,40 @@
+rosbag2_recorded_topics: [
+    "/odom", # robot odometry
+    "/ground_truth", # ground truth robot position
+    "/cmd_vel",
+    "/rosout", # logs, not really useful
+    "/goal_sent", # goals sent by the exploration algorithmFalse
+    "/goal_reached", # goals reached by the exploration algorithm
+    "/clock", # clock, to use sim time
+    "/scan", # Useful for replaying
+    "/tf",
+    "/tf_static",
+    # "-a",
+  ]
+rosbag2_played_topics: [
+    "/odom", # robot odometry
+    "/ground_truth", # ground truth robot position
+    "/cmd_vel",
+    #"/rosout",
+    "/goal_sent",
+    "/goal_reached",
+    "/clock", # clock, to use sim time
+    "/scan",
+    "/tf",
+    "/tf_static",
+  ]
+
+map_saver_interval: 10 # seconds, wall time
+#world_name: "E34-2" # Irrelevant since no simulation is launched
+rviz_config: "rviz/explore-lite.rviz" # path to the rviz config file. If empty or if key is deleted, no rviz will be launched.
+
+# Since there is already a map->odom transform in /tf, we need to use a different name for the map frame.
+slam:
+  package: "slam_toolbox"
+  name: "online_async_launch.py"
+  is_launch_file: true #
+  params_file: "params/slam/slam_toolbox_1.yaml"
+  params_file_argument: "slam_params_file" # The name of the argument to pass the params file to the launchfile.
+  launchfile_args: # For a launchfile
+    use_sim_time: "true"
+    autostart: "true"
