@@ -2,7 +2,7 @@
 
 This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite launches multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the bags + map snapshots for further analysis of the runs.
 
-The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
+The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
 
 - [Installation guide](#installation-guide)
   - [Requirements](#requirements)
@@ -11,6 +11,10 @@ The `ros2_simulation` folder is a ROS2 workspace that contains the packages and 
   - [Building the package](#building-the-package)
 - [Usage](#usage)
   - [Simulation](#simulation)
+    - [Parameters files](#parameters-files)
+    - [Config files](#config-files)
+    - [Launching a run](#launching-a-run)
+    - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
   - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
   - [Benchmarking](#benchmarking)
     - [Benchmark metrics](#benchmark-metrics)
@@ -25,7 +29,7 @@ The `ros2_simulation` folder is a ROS2 workspace that contains the packages and 
   
 <!-- TODO make a requirements.txt file for python dependencies -->
   
-<!-- TODO add other dependencies -->
+<!-- TODO add other dependencies  -->
 
 ### Cloning the project
 
@@ -69,25 +73,53 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ## Usage
 
-
-
 ### Simulation
 
-The `singlerun.py` script is used to launch a run. It reads the parameters from a YAML file, and launches the desired nodes to have a complete simulation, a visualization (rviz) and to save the results (rosbags, maps, etc.).
+#### Parameters files
 
-For an example of the structure of this YAML file, see: [ros2_simulation/params/example.yaml](ros2_simulation/params/example.yaml)
+The `params` folder contains the parameters file for the different parts of the simulation (parameters for nav2, the exploration algorithm, etc.), in the form of YAML files. 
 
-The run is launched with the following commands:
+#### Config files
+
+The `configs` folder contains the configuration files for the different runs. 
+Each config file is a YAML file that contains the parameters for the run, such as the environment to use, the exploration algorithm to run, the SLAM algorithm, and the parameters files that should be used for each part of the simulation (navigation, exploration, etc.).
+
+For an example of the structure of this YAML file, see: [ros2_simulation/configs/example_gmapper.yaml](ros2_simulation/configs/example_gmapper.yaml)
+
+The configs can be generated from a template YAML file using the `generate_configs.py` script. This script reads a template YAML file and generates multiple configs based on the parameters defined in the template.
+
+For an example of the template YAML file, see [ros2_simulation/config_templates/example_template.yaml](ros2_simulation/config_templates/example_template.yaml). 
 
 ```bash
 cd ros2_simulation
-source install/setup.bash
-python3 singlerun.py params/example.yaml
+python3 generate_configs.py config_templates/example_template.yaml
 ```
 
-The `params` folder also contains the parameters file for the different parts of the simulation (parameters for nav2, the exploration algorithm, etc.).
+#### Launching a run
 
+The `singlerun.py` script is used to launch a run. It reads the config parameters from a YAML config file and launches the desired nodes to have a complete simulation, a visualization (rviz) and to save the results (rosbags, maps, etc.).
 
+A folder for the run will be created in the `/runs` folder, it will contain the rosbag file, the maps saved periodically as well as the final map, and a copy of the config and parameters files used for the run.
+
+The run is launched with the following commands:
+```bash
+cd ros2_simulation
+source install/setup.bash
+python3 singlerun.py configs/example_gmapper.yaml
+```
+
+#### Replaying a run with a new config
+
+You can use a ros bag file to replay a run with a new config. This is particularly useful to try a different slam algorithm while using the exact same robot path.
+
+An example of a replay config is [ros2_simulation/configs/replay/example_replay.yaml](ros2_simulation/configs/replay/example_replay.yaml).
+
+A new folder will be created in the `runs` folder, with the same name as the original run + `_replay` at the end. You can launch the replay with the following command:
+```bash
+cd ros2_simulation
+source install/setup.bash
+python3 replay_from_bag.py configs/replay/example_replay.yaml ../runs/original_run_folder
+```
 
 ### Exploration algorithm inputs and outputs
 
@@ -104,6 +136,7 @@ The exploration algorithm should publish the following topics:
 - `goal_reached` (geometry_msgs/msg/Point), when a goal is reached by the robot, or when the exploration is stopped manually or automatically (in this case, the Point is (0, 0, 0))
 <!-- TODO: use a different method that goal_reached to indicate the end of the simulation -->
 
+<!-- TODO: add the specifications of the slam, tf, .... -->
 
 ### Benchmarking
 

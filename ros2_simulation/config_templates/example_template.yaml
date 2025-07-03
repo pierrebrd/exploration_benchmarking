@@ -1,4 +1,4 @@
-# The variables in uppercase are list where each item will be use to generate runs
+# The variables in UPPERCASE are list where each item will be use to generate runs
 
 map_saver_interval: 10 # seconds, wall time
 rviz_config: "rviz/explore-lite.rviz"
@@ -16,7 +16,7 @@ rosbag2_recorded_topics: [
         # "-a",
     ]
 
-WORLD_NAME: ["E34-2", "test 1", "test2"]
+WORLD_NAME: ["E34-2"]
 
 SLAM:
     - package: "gmapper" # Package containing the SLAM node /launch file
@@ -25,7 +25,7 @@ SLAM:
       params_file_argument: "" # The name of the argument to pass the params file to the launchfile.
       launchfile_args: {} # For a launchfile
       ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"] # Other arguments to pass to the CLI, without the "--ros-args" prefix.
-      PARAMS_FILE: ["params/slam/gmapping_1.yaml", "test4"] # Relative Path to the SLAM parameters file for nodes, from the folder where singlerun.py is. if using a launchfile, the path will be passed on the params_file_argument.
+      PARAMS_FILE: ["params/slam/gmapping_1.yaml"] # Relative Path to the SLAM parameters file for nodes, from the folder where singlerun.py is. if using a launchfile, the path will be passed on the params_file_argument.
 
     - package: "slam_toolbox" # Package containing the SLAM node /launch file
       name: "online_async_launch.py" # Can be launch file (ending with .py or .xml) or node name (e.g. "slam_toolbox")
