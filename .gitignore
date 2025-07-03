@@ -68,3 +68,6 @@ CATKIN_IGNORE
 
 # VSCode
 .vscode/
+
+# generated config files
+/ros2_simulation/configs/configs*
