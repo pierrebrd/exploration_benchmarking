@@ -207,7 +207,6 @@ def main(param_path):
     try:
         with open(param_path, "r") as f:
             params = yaml.safe_load(f)
-            # Example: extract variables from the loaded params
     except Exception as e:
         print(f"Failed to read parameters file {param_path}: {e}")
         sys.exit(1)

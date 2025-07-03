@@ -1,0 +1,72 @@
+# The variables in uppercase are list where each item will be use to generate runs
+
+map_saver_interval: 10 # seconds, wall time
+rviz_config: "rviz/explore-lite.rviz"
+rosbag2_recorded_topics: [
+        "/odom", # robot odometry
+        "/ground_truth", # ground truth robot position
+        "/cmd_vel",
+        "/rosout", # logs, not really useful
+        "/goal_sent", # goals sent by the exploration algorithmFalse
+        "/goal_reached", # goals reached by the exploration algorithm
+        "/clock", # clock, to use sim time
+        "/scan", # Useful for replaying
+        "/tf",
+        "/tf_static",
+        # "-a",
+    ]
+
+WORLD_NAME: ["E34-2", "test 1", "test2"]
+
+SLAM:
+    - package: "gmapper" # Package containing the SLAM node /launch file
+      name: "gmap" # Can be launch file (ending with .py or .xml) or node name (e.g. "slam_toolbox")
+      is_launch_file: false # Set to true if slam_name is a launch file, false if it is a node name.
+      params_file_argument: "" # The name of the argument to pass the params file to the launchfile.
+      launchfile_args: {} # For a launchfile
+      ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"] # Other arguments to pass to the CLI, without the "--ros-args" prefix.
+      PARAMS_FILE: ["params/slam/gmapping_1.yaml", "test4"] # Relative Path to the SLAM parameters file for nodes, from the folder where singlerun.py is. if using a launchfile, the path will be passed on the params_file_argument.
+
+    - package: "slam_toolbox" # Package containing the SLAM node /launch file
+      name: "online_async_launch.py" # Can be launch file (ending with .py or .xml) or node name (e.g. "slam_toolbox")
+      is_launch_file: true # Set to true if slam_name is a launch file, false if it is a node name.
+      params_file_argument: "slam_params_file" # The name of the argument to pass the params file to the launchfile.
+      launchfile_args: # For a launchfile
+          use_sim_time: "true"
+          autostart: "true"
+      ros_args: [] # Other arguments to pass to the CLI, without the "--ros-args" prefix.
+      PARAMS_FILE: ["params/slam/slam_toolbox_1.yaml"] # Relative Path to the SLAM parameters file for nodes, from the folder where singlerun.py is. if using a launchfile, the path will be passed on the params_file argument.
+
+navigation:
+    package: "nav2_bringup"
+    name: "navigation_launch.py"
+    is_launch_file: true
+    params_file_argument: "params_file"
+    ros_args: []
+    launchfile_args:
+        use_sim_time: "true"
+        autostart: "true"
+        log_level: "info"
+    PARAMS_FILE: ["params/navigation/nav2_params.yaml"] # List of params files. The generator will create a run params for every file in the list
+
+exploration:
+    package: "explore_lite"
+    name: "explore"
+    is_launch_file: false
+    params_file_argument: "" # Not used for a node
+    # other_params maybe i could put the use sim time here
+    launchfile_args: {}
+    ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"]
+    PARAMS_FILE: ["params/exploration/params.yaml"]
+
+simulation:
+    package: "stage_ros2"
+    name: "stage.launch.py"
+    is_launch_file: true
+    params_file_argument: "" # Not used here
+    launchfile_args:
+        enforce_prefixes: "false"
+        use_static_transformations: "true"
+        one_tf_tree: "false"
+    ros_args: []
+    PARAMS_FILE: [""]
