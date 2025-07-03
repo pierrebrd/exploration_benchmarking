@@ -57,6 +57,7 @@ def main(param_path, input_run_folder):
     rosbag2_played_topics = params["rosbag2_played_topics"]
     map_saver_interval = params["map_saver_interval"]
 
+    rate = params.get("rate", None)
     slam = params.get("slam", None)
     exploration = params.get("exploration", None)
     navigation = params.get("navigation", None)
@@ -144,6 +145,7 @@ def main(param_path, input_run_folder):
             rosbag2_played_topics,
             os.path.join(input_run_folder, "rosbags"),
             remappings={"/tf": "tf_unfiltered"},
+            rate=rate,
         )
         running_processes.append(rosbag2_playing_process)
 

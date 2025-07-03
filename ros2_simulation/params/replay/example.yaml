@@ -24,6 +24,7 @@ rosbag2_played_topics: [
     "/tf_static",
   ]
 
+rate: 20.0 # Hz, the rate at which the bag is replayed
 map_saver_interval: 10 # seconds, wall time
 #world_name: "E34-2" # Irrelevant since no simulation is launched
 rviz_config: "rviz/explore-lite.rviz" # path to the rviz config file. If empty or if key is deleted, no rviz will be launched.

@@ -61,7 +61,7 @@ def launch_rosbag2_recording(topics, folder, use_sim_time=False):
     return p
 
 
-def launch_rosbag2_playing(topics, folder, remappings: dict = None):
+def launch_rosbag2_playing(topics, folder, remappings: dict = None, rate=None):
     cmd = [
         "ros2",
         "bag",
@@ -75,6 +75,8 @@ def launch_rosbag2_playing(topics, folder, remappings: dict = None):
         cmd += ["--remap"]
         for key, value in remappings.items():
             cmd += [f"{key}:={value}"]
+    if rate:
+        cmd += ["--rate", str(rate)]
     print("Starting rosbag2 playing...")
     p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     return p
@@ -191,6 +193,8 @@ def save_maps(interval, folder, stop_event):
         "info",
     ]
     process = subprocess.Popen(save_cmd, preexec_fn=os.setsid)
+    # Ensure the final map is saved before killing the other processes
+    process.wait(timeout=10)
     print("Map saving thread stopping.")
 
 
