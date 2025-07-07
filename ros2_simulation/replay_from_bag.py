@@ -25,7 +25,8 @@ from singlerun import (
     launch_roslaunchfile,
     launch_rosnode,
     launch_generic,
-    save_maps,
+    save_map,
+    save_maps_thread,
 )
 
 
@@ -48,15 +49,13 @@ def main(param_path, input_run_folder):
         for key in [
             "rosbag2_recorded_topics",
             "rosbag2_played_topics",
-            "map_saver_interval",
         ]
     ), "Missing required parameters"
 
     # Extract parameters
     rosbag2_recorded_topics = params["rosbag2_recorded_topics"]
     rosbag2_played_topics = params["rosbag2_played_topics"]
-    map_saver_interval = params["map_saver_interval"]
-
+    map_saver_interval = params.get("map_saver_interval", 0)
     rate = params.get("rate", None)
     slam = params.get("slam", None)
     exploration = params.get("exploration", None)
@@ -151,12 +150,13 @@ def main(param_path, input_run_folder):
 
         # Then we launch the map saver server
         # Currently we dont launch a static map saver server, a map saver server is launched and destroyed everytime we call map_saver_cli
-        map_saver_thread = threading.Thread(
-            target=save_maps,
-            args=(map_saver_interval, maps_folder, stop_event),
-            daemon=True,
-        )
-        map_saver_thread.start()
+        if map_saver_interval > 0:
+            map_saver_thread = threading.Thread(
+                target=save_maps_thread,
+                args=(map_saver_interval, maps_folder, stop_event),
+                daemon=True,
+            )
+            map_saver_thread.start()
 
         time.sleep(2)
 
@@ -206,6 +206,12 @@ def main(param_path, input_run_folder):
             print("Map saver thread stopped.")
         except Exception as e:
             print(f"Failed to stop map saver thread: {e}")
+
+        # Save the final map
+        final_map_process = save_map(maps_folder, f"map_final_{run_name}")
+        running_processes.append(final_map_process)
+        # Ensure the final map is saved before killing the other processes
+        final_map_process.wait(timeout=10)
 
         # Kill the running processes
         running_processes.reverse()

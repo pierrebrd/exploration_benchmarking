@@ -146,39 +146,9 @@ def launch_generic(dict: dict, other_params=None):
     return process
 
 
-def save_maps(interval, folder, stop_event):
-
-    # TODO: doesnt respect use_sim_time,
-    print("Starting map saving thread...")
-    time.sleep(20)  # Initial delay to ensure the /map topic is available
-    index = 0
-
-    while not stop_event.is_set():
-        map_path = os.path.join(folder, f"map_{int(index)}")
-        save_cmd = [
-            "ros2",
-            "run",
-            "nav2_map_server",
-            "map_saver_cli",
-            "-f",
-            map_path,
-            "--fmt",
-            "png",
-            "--ros-args",
-            "--log-level",
-            "info",
-        ]
-        process = subprocess.Popen(save_cmd, preexec_fn=os.setsid)
-
-        index += 1
-
-        # Wait, while looking for the stop event
-        for _ in range(int(interval * 10)):
-            if stop_event.is_set():
-                break
-            time.sleep(0.1)
-    # Save final map
-    map_path = os.path.join(folder, f"map_final")
+def save_map(folder, map_name):
+    """save a single map"""
+    map_path = os.path.join(folder, map_name)
     save_cmd = [
         "ros2",
         "run",
@@ -193,7 +163,28 @@ def save_maps(interval, folder, stop_event):
         "info",
     ]
     process = subprocess.Popen(save_cmd, preexec_fn=os.setsid)
-    # Ensure the final map is saved before killing the other processes
+    return process
+
+
+def save_maps_thread(interval, folder, stop_event):
+
+    # TODO: doesnt respect use_sim_time,
+    print("Starting map saving thread...")
+    time.sleep(20)  # Initial delay to ensure the /map topic is available
+    index = 0
+
+    while not stop_event.is_set():
+
+        process = save_map(folder, f"map_{int(index)}")
+
+        index += 1
+
+        # Wait, while looking for the stop event
+        for _ in range(int(interval * 10)):
+            if stop_event.is_set():
+                break
+            time.sleep(0.1)
+
     process.wait(timeout=10)
     print("Map saving thread stopping.")
 
@@ -216,7 +207,6 @@ def main(config_path):
         for key in [
             "world_name",
             "rosbag2_recorded_topics",
-            "map_saver_interval",
             "slam",
             "exploration",
             "navigation",
@@ -227,7 +217,7 @@ def main(config_path):
     # Extract parameters
     world_name = config_data["world_name"]
     rosbag2_recorded_topics = config_data["rosbag2_recorded_topics"]
-    map_saver_interval = config_data["map_saver_interval"]
+    map_saver_interval = config_data.get("map_saver_interval", 0)
     slam = config_data.get("slam", None)
     exploration = config_data.get("exploration", None)
     navigation = config_data.get("navigation", None)
@@ -316,12 +306,13 @@ def main(config_path):
 
         # Then we launch the map saver server
         # Currently we dont launch a static map saver server, a map saver server is launched and destroyed everytime we call map_saver_cli
-        map_saver_thread = threading.Thread(
-            target=save_maps,
-            args=(map_saver_interval, maps_folder, stop_event),
-            daemon=True,
-        )
-        map_saver_thread.start()
+        if map_saver_interval > 0:
+            map_saver_thread = threading.Thread(
+                target=save_maps_thread,
+                args=(map_saver_interval, maps_folder, stop_event),
+                daemon=True,
+            )
+            map_saver_thread.start()
 
         time.sleep(2)
 
@@ -369,6 +360,12 @@ def main(config_path):
             print("Map saver thread stopped.")
         except Exception as e:
             print(f"Failed to stop map saver thread: {e}")
+
+        # Save the final map
+        final_map_process = save_map(maps_folder, f"map_final_{run_name}_{world_name}")
+        running_processes.append(final_map_process)
+        # Ensure the final map is saved before killing the other processes
+        final_map_process.wait(timeout=10)
 
         # Kill the running processes
         running_processes.reverse()
