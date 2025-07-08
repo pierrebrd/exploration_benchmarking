@@ -16,6 +16,18 @@ from visualization_msgs.msg import MarkerArray
 from rclpy.executors import MultiThreadedExecutor
 import yaml
 import shutil
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Launch a ROS2 simulation run based on a YAML config file."
+    )
+    parser.add_argument(
+        "config_path",
+        help="Path to the YAML config file containing the parameters for the simulation run.",
+    )
+    return parser.parse_args()
 
 
 def kill_process(p):
@@ -189,7 +201,10 @@ def save_maps_thread(interval, folder, stop_event):
     print("Map saving thread stopping.")
 
 
-def main(config_path):
+def main():
+
+    args = parse_args()
+    config_path = os.path.abspath(args.config_path)
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -398,11 +413,6 @@ def main(config_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 singlerun.py relative_path_to_config.yaml")
-        sys.exit(1)
-
-    config_path = os.path.abspath(sys.argv[1])
     # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     # explore_worlds(project_root, world_path)
-    main(config_path)
+    main()

@@ -16,6 +16,7 @@ from visualization_msgs.msg import MarkerArray
 from rclpy.executors import MultiThreadedExecutor
 import yaml
 import shutil
+import argparse
 
 # Import functions from other py scripts
 from singlerun import (
@@ -30,7 +31,26 @@ from singlerun import (
 )
 
 
-def main(config_path, input_run_folder):
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Replay a ROS2 simulation run using different parameters and algorithms, based on a YAML config file."
+    )
+    parser.add_argument(
+        "config_path",
+        help="Path to the YAML config file containing the parameters for the simulation run.",
+    )
+    parser.add_argument(
+        "input_run_folder",
+        help="Path to the folder containing the input run data. (This folder should contain a 'rosbags' subfolder)",
+    )
+    return parser.parse_args()
+
+
+def main():
+
+    args = parse_args()
+    config_path = os.path.abspath(args.config_path)
+    input_run_folder = os.path.abspath(args.input_run_folder)
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -245,14 +265,6 @@ def main(config_path, input_run_folder):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print(
-            "Usage: python3 replay_from_bag.py relative_path_to_config.yaml relative/path/to/run"
-        )
-        sys.exit(1)
-
-    config_path = os.path.abspath(sys.argv[1])
-    input_run_path = os.path.abspath(sys.argv[2])
     # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     # explore_worlds(project_root, world_path)
-    main(config_path, input_run_path)
+    main()

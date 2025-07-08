@@ -1,3 +1,4 @@
+from html import parser
 from pyexpat.errors import messages
 import sys
 
@@ -13,10 +14,24 @@ import evo
 import subprocess
 import json
 import zipfile
+import argparse
 
-## Global variables
+# Global variables
 
-VERBOSE = False
+verbose = False
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Benchmark a ROS2 simulation run")
+    parser.add_argument(
+        "run_path", help="Path to the run folder (should contain a 'rosbags' subfolder)"
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output",
+    )
+    return parser.parse_args()
 
 
 def read_rosbag2(file_path):
@@ -173,7 +188,7 @@ def process_messages(messages):
         if topic == "/clock":
             # Adjust current_time
             current_time = data.clock.sec + data.clock.nanosec * 1e-9
-            if VERBOSE:
+            if verbose:
                 print(f"Current time updated: {current_time}s")
 
         elif topic == "/goal_sent":
@@ -181,7 +196,7 @@ def process_messages(messages):
             goals.append([(data.x, data.y), current_time, None])
             if not start_time:
                 start_time = current_time
-            if VERBOSE:
+            if verbose:
                 print(f"Goal sent at {current_time}s: {data.x}, {data.y}")
 
         elif topic == "/goal_reached":
@@ -196,12 +211,12 @@ def process_messages(messages):
                     # Set the current time as the reached time
                     goals[i][2] = current_time
                     goal_found = True
-                    if VERBOSE:
+                    if verbose:
                         print(
                             f"Goal reached at {current_time}s, after {current_time-goals[i][1]}s: {goals[i][0]}"
                         )
                     break
-            if not goal_found and VERBOSE:
+            if not goal_found and verbose:
                 print(
                     f"Warning: Goal reached signal received at {current_time} but no matching goal found"
                 )
@@ -218,7 +233,7 @@ def process_messages(messages):
                     (data.pose.pose.orientation.z, data.pose.pose.orientation.w),
                 )
             )
-            if VERBOSE:
+            if verbose:
                 print(
                     f"Ground truth position at {data.header.stamp.sec + data.header.stamp.nanosec * 1e-9}s: "
                     f"{data.pose.pose.position.x}, {data.pose.pose.position.y}"
@@ -228,16 +243,13 @@ def process_messages(messages):
 
 
 def main():
-    global VERBOSE
 
-    if len(sys.argv) < 2:
-        print("Usage: python time_benchmark.py <path_to_rosbag> [--verbose]")
-        sys.exit(1)
+    global verbose
 
-    if len(sys.argv) > 2:
-        VERBOSE = sys.argv[2].lower() == "--verbose"
+    args = parse_args()
+    run_path = args.run_path
+    verbose = args.verbose
 
-    run_path = sys.argv[1]
     bag_path = os.path.join(run_path, "rosbags/")
 
     messages = read_rosbag2(bag_path)
