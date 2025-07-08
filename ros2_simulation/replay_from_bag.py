@@ -117,7 +117,9 @@ def main():
         for dict in [slam, exploration, navigation, simulation]:
             if dict and dict.get("params_file", None):
                 try:
-                    params_dest_file = os.path.join(run_folder, dict["params_file"])
+                    params_dest_file = os.path.join(
+                        params_folder, os.path.basename(dict["params_file"])
+                    )
                     os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
                     shutil.copy(dict["params_file"], params_dest_file)
                 except Exception as e:
