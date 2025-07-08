@@ -390,35 +390,37 @@ def main():
             print("Map saver thread stopped.")
         except Exception as e:
             print(f"Failed to stop map saver thread: {e}")
+        finally:
+            # Save the final map
+            final_map_process = save_map(
+                maps_folder, f"map_final_{run_name}_{world_name}"
+            )
+            running_processes.append(final_map_process)
+            # Ensure the final map is saved before killing the other processes
+            final_map_process.wait(timeout=10)
 
-        # Save the final map
-        final_map_process = save_map(maps_folder, f"map_final_{run_name}_{world_name}")
-        running_processes.append(final_map_process)
-        # Ensure the final map is saved before killing the other processes
-        final_map_process.wait(timeout=10)
+            # Kill the running processes
+            running_processes.reverse()
+            for process in running_processes:
+                try:
+                    if process.poll() is None:
+                        kill_process(process)
+                        print(f"{process} terminated.")
+                except Exception as e:
+                    print(f"Failed to terminate {process}: {e}")
 
-        # Kill the running processes
-        running_processes.reverse()
-        for process in running_processes:
+            # Shutdown ROS2
             try:
-                if process.poll() is None:
-                    kill_process(process)
-                    print(f"{process} terminated.")
+                if rclpy.ok():
+                    rclpy.shutdown()
+                    print("ROS2 node shutdown.")
             except Exception as e:
-                print(f"Failed to terminate {process}: {e}")
+                print(f"Failed to shutdown ROS2: {e}")
 
-        # Shutdown ROS2
-        try:
-            if rclpy.ok():
-                rclpy.shutdown()
-                print("ROS2 node shutdown.")
-        except Exception as e:
-            print(f"Failed to shutdown ROS2: {e}")
+            print("All processes terminated successfully.")
 
-        print("All processes terminated successfully.")
-
-        # Give processes time to fully terminate
-        time.sleep(1)
+            # Give processes time to fully terminate
+            time.sleep(1)
 
 
 if __name__ == "__main__":
