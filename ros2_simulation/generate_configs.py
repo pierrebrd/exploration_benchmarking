@@ -5,9 +5,24 @@ import os
 import yaml
 import datetime
 import time
+import argparse
 
 # def extract_uppercase(data):
 #     uppercase_configs = {}
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate config files from a YAML template."
+    )
+    parser.add_argument("input_yaml_path", help="Path to the input YAML file")
+    parser.add_argument(
+        "output_folder",
+        nargs="?",
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs"),
+        help="Optional output folder for generated configs",
+    )
+    return parser.parse_args()
 
 
 def recursive_config(data):
@@ -47,9 +62,18 @@ def recursive_config(data):
         print(f"Error, not a dict : {data} ")
 
 
-def main(input_yaml_path):
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    configs_folder = os.path.join(current_directory, "configs")
+def main():
+
+    args = parse_args()
+    input_yaml_path = args.input_yaml_path
+    output_folder = args.output_folder
+
+    if not os.path.exists(input_yaml_path):
+        print(f"Input YAML file does not exist: {input_yaml_path}")
+        sys.exit(1)
+    if not os.path.exists(output_folder):
+        print(f"Output folder does not exist: {output_folder}")
+        sys.exit(1)
 
     # Read the input YAML file
     try:
@@ -63,14 +87,14 @@ def main(input_yaml_path):
 
     # Create the folder for the generated configs
     generated_name = datetime.datetime.now().strftime("configs_%Y_%m_%d_%H_%M")
-    generated_folder = os.path.join(configs_folder, generated_name)
+    generated_folder = os.path.join(output_folder, generated_name)
     # Check if the run folder already exists, if so, append _1, _2, etc.
     i = 1
     while os.path.exists(generated_folder):
         generated_name = (
             datetime.datetime.now().strftime("configs_%Y_%m_%d_%H_%M") + f"_{i}"
         )
-        generated_folder = os.path.join(configs_folder, generated_name)
+        generated_folder = os.path.join(output_folder, generated_name)
         i += 1
     os.makedirs(generated_folder)
     del i
@@ -82,14 +106,8 @@ def main(input_yaml_path):
         output_path = os.path.join(generated_folder, f"config_{i}.yaml")
         with open(output_path, "w") as f:
             yaml.dump(config, f, default_flow_style=False, indent=4, sort_keys=False)
+    print(f"Generated {len(configs)} configs in {generated_folder}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python generate_configs.py <path_to_input_yaml>")
-        sys.exit(1)
-    input_yaml_path = sys.argv[1]
-    if not os.path.exists(input_yaml_path):
-        print(f"Input YAML file does not exist: {input_yaml_path}")
-        sys.exit(1)
-    main(input_yaml_path)
+    main()
