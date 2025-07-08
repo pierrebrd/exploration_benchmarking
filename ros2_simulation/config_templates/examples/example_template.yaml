@@ -17,6 +17,7 @@ rosbag2_recorded_topics: [
     ]
 
 WORLD_NAME: ["E34-2"]
+# worlds_folder: "" # Optional, if the worlds are in a different folder than exploratio_benchmarking/worlds
 
 SLAM:
     - package: "gmapper" # Package containing the SLAM node /launch file

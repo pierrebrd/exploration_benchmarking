@@ -238,6 +238,9 @@ def main():
 
     # Extract parameters
     world_name = config_data["world_name"]
+    worlds_folder = config_data.get(
+        "worlds_folder", os.path.join(current_directory, "..", "worlds")
+    )
     rosbag2_recorded_topics = config_data["rosbag2_recorded_topics"]
     map_saver_interval = config_data.get("map_saver_interval", 0)
     slam = config_data.get("slam", None)
@@ -247,7 +250,7 @@ def main():
     additional_processes = config_data.get("additional_processes", [])
 
     # Check if the world file exists
-    world_path = os.path.join(current_directory, "..", "worlds", world_name)
+    world_path = os.path.join(worlds_folder, world_name)
     simulation["launchfile_args"]["world"] = world_path
     # TODO : put the world choice in the the simulation params_file instead?
 
