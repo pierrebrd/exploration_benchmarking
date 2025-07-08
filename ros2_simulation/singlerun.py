@@ -27,6 +27,12 @@ def parse_args():
         "config_path",
         help="Path to the YAML config file containing the parameters for the simulation run.",
     )
+    parser.add_argument(
+        "output_folder",
+        nargs="?",
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "runs"),
+        help="Optional output folder, that will contain the run folder",
+    )
     return parser.parse_args()
 
 
@@ -205,6 +211,7 @@ def main():
 
     args = parse_args()
     config_path = os.path.abspath(args.config_path)
+    output_folder = args.output_folder
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -246,18 +253,17 @@ def main():
 
     try:
         # Make folders
-        runs_folder = os.path.join(current_directory, "..", "runs")
-        if not os.path.exists(runs_folder):
-            os.makedirs(runs_folder)
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
         # Create the folder for this run
         run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M")
-        run_folder = os.path.join(runs_folder, run_name)
+        run_folder = os.path.join(output_folder, run_name)
         # Check if the run folder already exists, if so, append _1, _2, etc.
         i = 1
         while os.path.exists(run_folder):
             run_name = datetime.datetime.now().strftime("run_%Y_%m_%d_%H_%M") + f"_{i}"
-            run_folder = os.path.join(runs_folder, run_name)
+            run_folder = os.path.join(output_folder, run_name)
             i += 1
         os.makedirs(run_folder)
         del i

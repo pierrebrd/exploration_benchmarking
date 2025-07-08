@@ -84,17 +84,17 @@ def main():
 
     try:
         # Make folders
-        runs_folder = os.path.join(current_directory, "..", "runs")
-        if not os.path.exists(runs_folder):
-            os.makedirs(runs_folder)
+        output_folder = os.path.join(input_run_folder, "..")
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
         # Create the folder for this run
         run_name = os.path.basename(input_run_folder) + "_replay"
-        run_folder = os.path.join(runs_folder, run_name)
+        run_folder = os.path.join(output_folder, run_name)
         i = 1
         while os.path.exists(run_folder):
             run_name = os.path.basename(input_run_folder) + "_replay" + f"_{i}"
-            run_folder = os.path.join(runs_folder, run_name)
+            run_folder = os.path.join(output_folder, run_name)
             i += 1
         os.makedirs(run_folder)
         del i
