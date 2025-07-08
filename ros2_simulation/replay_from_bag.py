@@ -30,22 +30,21 @@ from singlerun import (
 )
 
 
-def main(param_path, input_run_folder):
+def main(config_path, input_run_folder):
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
     # Read Parameters
 
     try:
-        with open(param_path, "r") as f:
-            params = yaml.safe_load(f)
-            # Example: extract variables from the loaded params
+        with open(config_path, "r") as f:
+            config_data = yaml.safe_load(f)
     except Exception as e:
-        print(f"Failed to read parameters file {param_path}: {e}")
+        print(f"Failed to read config file {config_path}: {e}")
         sys.exit(1)
 
     assert all(
-        key in params
+        key in config_data
         for key in [
             "rosbag2_recorded_topics",
             "rosbag2_played_topics",
@@ -53,14 +52,14 @@ def main(param_path, input_run_folder):
     ), "Missing required parameters"
 
     # Extract parameters
-    rosbag2_recorded_topics = params["rosbag2_recorded_topics"]
-    rosbag2_played_topics = params["rosbag2_played_topics"]
-    map_saver_interval = params.get("map_saver_interval", 0)
-    rate = params.get("rate", None)
-    slam = params.get("slam", None)
-    exploration = params.get("exploration", None)
-    navigation = params.get("navigation", None)
-    simulation = params.get("simulation", None)
+    rosbag2_recorded_topics = config_data["rosbag2_recorded_topics"]
+    rosbag2_played_topics = config_data["rosbag2_played_topics"]
+    map_saver_interval = config_data.get("map_saver_interval", 0)
+    rate = config_data.get("rate", None)
+    slam = config_data.get("slam", None)
+    exploration = config_data.get("exploration", None)
+    navigation = config_data.get("navigation", None)
+    simulation = config_data.get("simulation", None)
 
     try:
         # Make folders
@@ -89,11 +88,11 @@ def main(param_path, input_run_folder):
         # Copy the parameters files
         if not os.path.exists(params_folder):
             os.makedirs(params_folder)
-        params_dest_path = os.path.join(params_folder, os.path.basename(param_path))
+        config_dest_path = os.path.join(run_folder, os.path.basename(config_path))
         try:
-            shutil.copy(param_path, params_dest_path)
+            shutil.copy(config_path, config_dest_path)
         except Exception as e:
-            print(f"Failed to copy parameter file to {params_dest_path}: {e}")
+            print(f"Failed to copy config file to {config_dest_path}: {e}")
         for dict in [slam, exploration, navigation, simulation]:
             if dict and dict.get("params_file", None):
                 try:
@@ -116,9 +115,9 @@ def main(param_path, input_run_folder):
         running_processes = []
 
         # Launch rviz if specified in the parameters
-        if "rviz_config" in params:
+        if "rviz_config" in config_data:
             try:
-                rviz_config = params["rviz_config"]
+                rviz_config = config_data["rviz_config"]
                 rviz_process = launch_rosnode(
                     package="rviz2",
                     node="rviz2",
@@ -127,7 +126,9 @@ def main(param_path, input_run_folder):
                 )
                 running_processes.append(rviz_process)
             except Exception as e:
-                print(f"Failed to launch RViz with config {params['rviz_config']}: {e}")
+                print(
+                    f"Failed to launch RViz with config {config_data['rviz_config']}: {e}"
+                )
 
         # We first launch the tf filter node
         tf_filter_process = launch_rosnode("exploration_benchmarking", "tf_filter")
@@ -240,12 +241,12 @@ def main(param_path, input_run_folder):
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(
-            "Usage: python3 replay_from_bag.py relative_path_to_param.yaml relative/path/to/run"
+            "Usage: python3 replay_from_bag.py relative_path_to_config.yaml relative/path/to/run"
         )
         sys.exit(1)
 
-    param_path = os.path.abspath(sys.argv[1])
+    config_path = os.path.abspath(sys.argv[1])
     input_run_path = os.path.abspath(sys.argv[2])
     # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     # explore_worlds(project_root, world_path)
-    main(param_path, input_run_path)
+    main(config_path, input_run_path)
