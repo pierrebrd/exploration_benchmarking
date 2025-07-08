@@ -250,7 +250,7 @@ def main():
     additional_processes = config_data.get("additional_processes", [])
 
     # Check if the world file exists
-    world_path = os.path.join(worlds_folder, world_name)
+    world_path = os.path.abspath(os.path.join(worlds_folder, world_name))
     simulation["launchfile_args"]["world"] = world_path
     # TODO : put the world choice in the the simulation params_file instead?
 
