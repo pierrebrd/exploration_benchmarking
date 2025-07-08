@@ -222,6 +222,7 @@ def main(config_path):
     exploration = config_data.get("exploration", None)
     navigation = config_data.get("navigation", None)
     simulation = config_data.get("simulation", None)
+    additional_processes = config_data.get("additional_processes", [])
 
     # Check if the world file exists
     world_path = os.path.join(current_directory, "..", "worlds", world_name)
@@ -315,6 +316,11 @@ def main(config_path):
             map_saver_thread.start()
 
         time.sleep(2)
+
+        # Launch the additional processes if specified
+        for additional_process in additional_processes:
+            running_processes.append(launch_generic(additional_process))
+            # time.sleep(2) # Add delay?
 
         # Launch the simulation platform
         if simulation:

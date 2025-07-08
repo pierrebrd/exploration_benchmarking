@@ -70,3 +70,5 @@ simulation:
         one_tf_tree: "false"
     ros_args: []
     PARAMS_FILE: [""]
+
+additional_processes: [] # List of other nodes or launch files to run. The list containes dicts, with keys "package", "name", ...

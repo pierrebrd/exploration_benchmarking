@@ -60,6 +60,7 @@ def main(config_path, input_run_folder):
     exploration = config_data.get("exploration", None)
     navigation = config_data.get("navigation", None)
     simulation = config_data.get("simulation", None)
+    additional_processes = config_data.get("additional_processes", [])
 
     try:
         # Make folders
@@ -139,6 +140,11 @@ def main(config_path, input_run_folder):
             rosbag2_recorded_topics, rosbags_folder
         )
         running_processes.append(rosbag2_recording_process)
+
+        # Launch the additional processes if specified
+        for additional_process in additional_processes:
+            running_processes.append(launch_generic(additional_process))
+            # time.sleep(2) # Add delay?
 
         # Then we launch the rosbag2 playing node
         rosbag2_playing_process = launch_rosbag2_playing(

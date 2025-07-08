@@ -11,7 +11,7 @@ rosbag2_recorded_topics: [
         "/tf_static",
         # "-a",
     ]
-map_saver_interval: 10 # seconds, wall time
+map_saver_interval: 10 # seconds, wall time. To not save the map during the run, set to 0
 world_name: "E34-2" # Replace with the actual world name, without the .world extension.
 rviz_config: "rviz/explore-lite.rviz" # path to the rviz config file. If empty or if key is deleted, no rviz will be launched.
 
@@ -57,3 +57,5 @@ simulation:
         use_static_transformations: "true"
         one_tf_tree: "false"
     ros_args: []
+
+additional_processes: [] # List of other nodes or launch files to run. The list containes dicts, with keys "package", "name", ...
