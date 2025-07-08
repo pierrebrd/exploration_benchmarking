@@ -13,3 +13,5 @@
 [submodule "src/m-explore-ros2"]
 	path = ros2_simulation/src/m-explore-ros2
 	url = git@github.com:pierrebrd/m-explore-ros2.git
+[submodule "ros2_simulation/src/m-explore-ros2/"]
+	branch = main
