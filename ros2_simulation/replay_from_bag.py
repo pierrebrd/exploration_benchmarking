@@ -46,11 +46,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-
-    args = parse_args()
-    config_path = os.path.abspath(args.config_path)
-    input_run_folder = os.path.abspath(args.input_run_folder)
+def replay_from_bag(config_path, input_run_folder):
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -264,6 +260,13 @@ def main():
 
         # Give processes time to fully terminate
         time.sleep(1)
+
+
+def main():
+    args = parse_args()
+    config_path = os.path.abspath(args.config_path)
+    input_run_folder = os.path.abspath(args.input_run_folder)
+    replay_from_bag(config_path, input_run_folder)
 
 
 if __name__ == "__main__":

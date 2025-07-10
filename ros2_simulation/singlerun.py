@@ -207,11 +207,7 @@ def save_maps_thread(interval, folder, stop_event):
     print("Map saving thread stopping.")
 
 
-def main():
-
-    args = parse_args()
-    config_path = os.path.abspath(args.config_path)
-    output_folder = args.output_folder
+def singlerun(config_path, output_folder):
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -423,6 +419,13 @@ def main():
 
             # Give processes time to fully terminate
             time.sleep(1)
+
+
+def main():
+    args = parse_args()
+    config_path = os.path.abspath(args.config_path)
+    output_folder = os.path.abspath(args.output_folder)
+    singlerun(config_path, output_folder)
 
 
 if __name__ == "__main__":
