@@ -21,7 +21,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Launch a ROS2 simulation run based on a YAML config file."
+        description="Launch a ROS2 simulation run based on a YAML config file. Path are relative to the terminal working directory, not the py script location."
     )
     parser.add_argument(
         "config_path",
@@ -114,7 +114,9 @@ def launch_roslaunchfile(
             cmd += [f"{key}:={str(value)}"]
     if params_file:
         # The launchfile should 'listen' to a params_file argument
-        cmd += [f"{params_file_argument}:={params_file}"]
+        cmd += [
+            f"{params_file_argument}:={os.path.abspath(os.path.join(os.path.dirname(__file__), params_file))}"
+        ]
     if ros_args:
         cmd += ["--ros-args"] + ros_args
 
@@ -130,7 +132,11 @@ def launch_rosnode(
     if args:
         cmd += args
     if params_file:
-        cmd += ["--ros-args", "--params-file", params_file]
+        cmd += [
+            "--ros-args",
+            "--params-file",
+            os.path.abspath(os.path.join(os.path.dirname(__file__), params_file)),
+        ]
     if other_params:
         cmd += ["--ros-args"]
         for key, value in other_params.items():
@@ -234,8 +240,11 @@ def singlerun(config_path, output_folder):
 
     # Extract parameters
     world_name = config_data["world_name"]
-    worlds_folder = config_data.get(
-        "worlds_folder", os.path.join(current_directory, "..", "worlds")
+    worlds_folder = os.path.abspath(
+        os.path.join(
+            current_directory,
+            config_data.get("worlds_folder", os.path.join("..", "worlds")),
+        )
     )
     rosbag2_recorded_topics = config_data["rosbag2_recorded_topics"]
     map_saver_interval = config_data.get("map_saver_interval", 0)
@@ -277,7 +286,9 @@ def singlerun(config_path, output_folder):
         # Copy the parameters files
         if not os.path.exists(params_folder):
             os.makedirs(params_folder)
-        config_dest_path = os.path.join(run_folder, os.path.basename(config_path))
+        config_dest_path = os.path.abspath(
+            os.path.join(run_folder, os.path.basename(config_path))
+        )
         try:
             shutil.copy(config_path, config_dest_path)
         except Exception as e:
@@ -285,11 +296,18 @@ def singlerun(config_path, output_folder):
         for dict in [slam, exploration, navigation, simulation]:
             if dict and dict.get("params_file", None):
                 try:
-                    params_dest_file = os.path.join(
-                        params_folder, os.path.basename(dict["params_file"])
+                    params_dest_file = os.path.abspath(
+                        os.path.join(
+                            params_folder, os.path.basename(dict["params_file"])
+                        )
                     )
                     os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
-                    shutil.copy(dict["params_file"], params_dest_file)
+                    shutil.copy(
+                        os.path.abspath(
+                            os.path.join(current_directory, dict["params_file"])
+                        ),
+                        params_dest_file,
+                    )
                 except Exception as e:
                     print(
                         f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"

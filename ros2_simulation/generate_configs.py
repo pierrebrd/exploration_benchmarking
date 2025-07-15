@@ -13,7 +13,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generate config files from a YAML template."
+        description="Generate config files from a YAML template.Path are relative to the terminal working directory, not the py script location."
     )
     parser.add_argument("input_yaml_path", help="Path to the input YAML file")
     parser.add_argument(
@@ -65,15 +65,19 @@ def recursive_config(data):
 def main():
 
     args = parse_args()
-    input_yaml_path = args.input_yaml_path
-    output_folder = args.output_folder
+    input_yaml_path = os.path.abspath(args.input_yaml_path)
+    output_folder = os.path.abspath(args.output_folder)
 
     if not os.path.exists(input_yaml_path):
         print(f"Input YAML file does not exist: {input_yaml_path}")
         sys.exit(1)
+
     if not os.path.exists(output_folder):
-        print(f"Output folder does not exist: {output_folder}")
-        sys.exit(1)
+        try:
+            os.makedirs(output_folder)
+        except Exception as e:
+            print(f"Failed to create output folder {output_folder}: {e}")
+            sys.exit(1)
 
     # Read the input YAML file
     try:

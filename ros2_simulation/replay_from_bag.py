@@ -33,7 +33,7 @@ from singlerun import (
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Replay a ROS2 simulation run using different parameters and algorithms, based on a YAML config file."
+        description="Replay a ROS2 simulation run using different parameters and algorithms, based on a YAML config file. Path are relative to the terminal working directory, not the py script location."
     )
     parser.add_argument(
         "config_path",
@@ -80,7 +80,7 @@ def replay_from_bag(config_path, input_run_folder):
 
     try:
         # Make folders
-        output_folder = os.path.join(input_run_folder, "..")
+        output_folder = os.path.abspath(os.path.join(input_run_folder, ".."))
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
@@ -105,7 +105,9 @@ def replay_from_bag(config_path, input_run_folder):
         # Copy the parameters files
         if not os.path.exists(params_folder):
             os.makedirs(params_folder)
-        config_dest_path = os.path.join(run_folder, os.path.basename(config_path))
+        config_dest_path = os.path.abspath(
+            os.path.join(run_folder, os.path.basename(config_path))
+        )
         try:
             shutil.copy(config_path, config_dest_path)
         except Exception as e:
@@ -113,11 +115,18 @@ def replay_from_bag(config_path, input_run_folder):
         for dict in [slam, exploration, navigation, simulation]:
             if dict and dict.get("params_file", None):
                 try:
-                    params_dest_file = os.path.join(
-                        params_folder, os.path.basename(dict["params_file"])
+                    params_dest_file = os.path.abspath(
+                        os.path.join(
+                            params_folder, os.path.basename(dict["params_file"])
+                        )
                     )
                     os.makedirs(os.path.dirname(params_dest_file), exist_ok=True)
-                    shutil.copy(dict["params_file"], params_dest_file)
+                    shutil.copy(
+                        os.path.abspath(
+                            os.path.join(current_directory, dict["params_file"])
+                        ),
+                        params_dest_file,
+                    )
                 except Exception as e:
                     print(
                         f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"
