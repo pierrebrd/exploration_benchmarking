@@ -75,7 +75,7 @@ def evo_metrics(
     # Easiest way I found is to call the bash command directly
 
     # Find the most recent file in the 'maps' directory
-    maps_path = os.path.join(os.path.dirname(run_path), "maps")
+    maps_path = os.path.join(run_path, "maps")
 
     if plot:
         latest_map_file = None
@@ -96,12 +96,12 @@ def evo_metrics(
     cmd_ape = [
         "evo_ape",
         "bag2",
-        os.path.join(os.path.dirname(run_path), "rosbags"),
+        os.path.join(run_path, "rosbags"),
         ground_truth_topic,
         estimated_pose_topic,
         "--save_results",
         os.path.join(
-            os.path.dirname(run_path), "ape_results.zip"
+            run_path, "ape_results.zip"
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing ape_results.zip file
     ]
@@ -120,12 +120,12 @@ def evo_metrics(
     cmd_rpe = [
         "evo_rpe",
         "bag2",
-        os.path.join(os.path.dirname(run_path), "rosbags"),
+        os.path.join(run_path, "rosbags"),
         ground_truth_topic,
         estimated_pose_topic,
         "--save_results",
         os.path.join(
-            os.path.dirname(run_path), "rpe_results.zip"
+            run_path, "rpe_results.zip"
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing rpe_results.zip file
     ]
@@ -145,9 +145,7 @@ def evo_metrics(
 
     # Load the results from ape_results.zip
     try:
-        with zipfile.ZipFile(
-            os.path.join(os.path.dirname(run_path), "ape_results.zip"), "r"
-        ) as zip_ref:
+        with zipfile.ZipFile(os.path.join(run_path, "ape_results.zip"), "r") as zip_ref:
             with zip_ref.open("stats.json") as stats_file:
                 stats = json.load(stats_file)
 
@@ -159,9 +157,7 @@ def evo_metrics(
 
     # and from rpe_results.zip
     try:
-        with zipfile.ZipFile(
-            os.path.join(os.path.dirname(run_path), "rpe_results.zip"), "r"
-        ) as zip_ref:
+        with zipfile.ZipFile(os.path.join(run_path, "rpe_results.zip"), "r") as zip_ref:
             with zip_ref.open("stats.json") as stats_file:
                 stats = json.load(stats_file)
 

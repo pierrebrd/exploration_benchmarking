@@ -68,7 +68,7 @@ def process_messages(messages):
 def main():
 
     args = parse_args()
-    run_path = args.run_path
+    run_path = os.path.abspath(args.run_path)
 
     bag_path = os.path.join(run_path, "rosbags/")
 
