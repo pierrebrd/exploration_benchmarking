@@ -1,0 +1,8 @@
+name: exploration_env
+channels:
+  - conda-forge
+dependencies:
+  - evo
+  - matplotlib
+  - pyqt
+  - python=3.10.12

@@ -4,20 +4,21 @@ This project aims to provide a benchmarking suite for exploration algorithms of 
 
 The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
 
-- [Installation guide](#installation-guide)
-  - [Requirements](#requirements)
-  - [Cloning the project](#cloning-the-project)
-  - [Installing dependencies](#installing-dependencies)
-  - [Building the package](#building-the-package)
-- [Usage](#usage)
-  - [Simulation](#simulation)
-    - [Parameters files](#parameters-files)
-    - [Config files](#config-files)
-    - [Launching a run](#launching-a-run)
-    - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
-  - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
-  - [Benchmarking](#benchmarking)
-    - [Benchmark metrics](#benchmark-metrics)
+- [Exploration benchmarking](#exploration-benchmarking)
+  - [Installation guide](#installation-guide)
+    - [Requirements](#requirements)
+    - [Cloning the project](#cloning-the-project)
+    - [Installing dependencies](#installing-dependencies)
+    - [Building the package](#building-the-package)
+  - [Usage](#usage)
+    - [Simulation](#simulation)
+      - [Parameters files](#parameters-files)
+      - [Config files](#config-files)
+      - [Launching a run](#launching-a-run)
+      - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
+    - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
+    - [Benchmarking](#benchmarking)
+      - [Benchmark metrics](#benchmark-metrics)
 
 ## Installation guide
 
@@ -25,11 +26,7 @@ The `ros2_simulation` folder is a ROS2 workspace that contains the packages and 
 ### Requirements
 
 - ROS2 Humble on Ubuntu 22.04 Jammy
-- For the benchmarking, the `evo` python package is required. Can be installed globally (`pip install evo`) or in a conda environment that uses the same python version as ROS2 Humble (python3.10). 
-  
-<!-- TODO make a requirements.txt file for python dependencies -->
-  
-<!-- TODO add other dependencies  -->
+- A python installation (preferably in a conda environment)
 
 ### Cloning the project
 
@@ -39,6 +36,13 @@ cd exploration_benchmarking
 ```
 
 ### Installing dependencies
+
+For the python environment:
+
+```bash
+conda env create -f environment-minimal.yml
+```
+For the ros2 dependencies:
 
 ```bash
 sudo apt update
