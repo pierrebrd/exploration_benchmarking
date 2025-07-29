@@ -148,7 +148,7 @@ def launch_rosnode(
     return p
 
 
-def launch_generic(dict: dict, other_params=None):
+def launch_generic(dict: dict):
     if dict["is_launch_file"]:
         process = launch_roslaunchfile(
             dict["package"],  # Will throw an error if the key is not found
@@ -159,12 +159,11 @@ def launch_generic(dict: dict, other_params=None):
             ros_args=dict.get("ros_args", []),
         )
     else:
-        # TODO : use other_params
         process = launch_rosnode(
             dict["package"],
             dict["name"],
             params_file=dict.get("params_file", None),
-            # other_params=,
+            other_params=dict.get("other_params", None),
             ros_args=dict.get("ros_args", []),
         )
     return process

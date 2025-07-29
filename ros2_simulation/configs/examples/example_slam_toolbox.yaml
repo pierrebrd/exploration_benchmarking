@@ -45,7 +45,7 @@ exploration:
     is_launch_file: false
     params_file: "params/exploration/params.yaml"
     params_file_argument: "" # Not used for a node
-    # other_params maybe i could put the use sim time here
+    other_params: {} # Other params to override the params_file for a node
     launchfile_args: {}
     ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"]
 
