@@ -87,8 +87,6 @@ def main():
         print(f"Failed to read input YAML file {input_yaml_path}: {e}")
         sys.exit(1)
 
-    # TODO : assert things?
-
     # Create the folder for the generated configs
     generated_name = datetime.datetime.now().strftime("configs_%Y_%m_%d_%H_%M")
     generated_folder = os.path.join(output_folder, generated_name)

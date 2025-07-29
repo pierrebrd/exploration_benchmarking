@@ -131,6 +131,7 @@ def replay_from_bag(config_path, input_run_folder):
                     print(
                         f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"
                     )
+
         # TODO : maybe dump the params using the ros2 param dump command? for each node ?
 
         # Init ROS2

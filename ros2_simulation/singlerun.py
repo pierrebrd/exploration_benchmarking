@@ -256,7 +256,6 @@ def singlerun(config_path, output_folder):
     # Check if the world file exists
     world_path = os.path.abspath(os.path.join(worlds_folder, world_name))
     simulation["launchfile_args"]["world"] = world_path
-    # TODO : put the world choice in the the simulation params_file instead?
 
     try:
         # Make folders
