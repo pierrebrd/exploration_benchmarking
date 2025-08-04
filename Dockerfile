@@ -67,7 +67,6 @@ RUN echo "Xvfb ${DISPLAY} -screen ${screen} ${resolution} &" >> ~/.bashrc
 # COPY launch.sh /root/launch.sh
 # RUN chmod +x /root/launch.sh
 
-# WORKDIR ${ROS_WS}/src/tb3_stage_explore
 # ENTRYPOINT ["/bin/bash", "-i", "/root/launch.sh"]
 
 CMD ["bash"]
