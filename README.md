@@ -66,18 +66,12 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ### Building the package
 
-<!-- TODO: not sure that building stage alone first is necessary -->
+```bash
+colcon build --symlink-install
+source install/setup.bash
+```
 
-1. First, build the Stage package only and source it:
-   ```bash
-   colcon build --symlink-install --packages-select stage
-   source install/setup.bash
-   ```
-2. Then, build the other packages:
-   ```bash
-   colcon build --symlink-install
-   source install/setup.bash
-   ```
+Note that there may be problems for the initial build if a conda environment is activated.
 
 <!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY # Not needed anymore-->
 
@@ -176,9 +170,7 @@ Those topics are optional:
 
 The exploration algorithm should publish the following topics:
 - `goal_sent` (geometry_msgs/msg/Point), when a goal is sent to the navigation stack
-- `goal_reached` (geometry_msgs/msg/Point), when a goal is reached by the robot, or when the exploration is stopped manually or automatically (in this case, the Point is (0, 0, 0))
-<!-- TODO: use a different method that goal_reached to indicate the end of the simulation -->
-
+- `goal_reached` (geometry_msgs/msg/Point), when a goal is reached by the robot, or when the exploration is stopped manually or automatically (in this case, the Point is (0, 0, 0)).
 <!-- TODO: add the specifications of the slam, tf, .... -->
 
 ### Benchmarking

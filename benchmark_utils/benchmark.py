@@ -66,10 +66,11 @@ def evo_metrics(
     """
     Aims to compute the difference between the ground_truth (provided by the simulation) and the estimated pose post-SLAM
     This is a good indicator of the 'quality of the map'
-    TODO : currently there is a problem because the ground_truth starts at (0, 0) instead of the initial poisiton of the robot
+    Currently there is a problem because the ground_truth starts at (0, 0) instead of the initial poisiton of the robot
     defined in the world file. This results in the ground_truth not "fitting" into the map image. --align_origin is useful to
     aligh the odom with the ground truth, but then nothing fits into the map image.
-    Possible solution: edit the world file OR use a ground_truth that starts at the initial position OR set a static TF?
+    A solution is to edit the world file so that the initial position of the robot is at (0, 0), and we adjust the map position instead
+    of the robot position.
     """
     # We use evo to compute APE (and RPE)
     # Easiest way I found is to call the bash command directly
@@ -140,8 +141,6 @@ def evo_metrics(
             latest_map_file,
         ]
     subprocess.run(cmd_rpe, capture_output=True)
-
-    # TODO : set other parameters (--pose_relation? --delta, --delta_tol)
 
     # Load the results from ape_results.zip
     try:
@@ -235,6 +234,12 @@ def process_messages(messages):
                     f"{data.pose.pose.position.x}, {data.pose.pose.position.y}"
                 )
 
+        # Additional method to check for exploration completion
+        elif topic == "/rosout":
+            if "All frontiers traversed/tried out/blacklisted, stopping." in data.msg:
+                print(f"Exploration stopped at {current_time}s")
+                end_time = current_time
+
     return (robot_path, goals, start_time, end_time)
 
 
@@ -278,5 +283,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# TODO: save all the results in a file (json or yaml)

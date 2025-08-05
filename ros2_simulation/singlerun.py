@@ -190,8 +190,9 @@ def save_map(folder, map_name):
 
 
 def save_maps_thread(interval, folder, stop_event):
-
-    # TODO: doesnt respect use_sim_time,
+    """
+    This saves the map at regular intervals, but the intervals are wall time, not ROS simulation time!!
+    """
     print("Starting map saving thread...")
     time.sleep(20)  # Initial delay to ensure the /map topic is available
     index = 0
@@ -310,7 +311,6 @@ def singlerun(config_path, output_folder):
                     print(
                         f"Failed to copy parameter file {dict['params_file']} to {params_dest_file}: {e}"
                     )
-        # TODO : maybe dump the params using the ros2 param dump command? for each node ?
 
         # Init ROS2
         rclpy.init()
