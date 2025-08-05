@@ -1,11 +1,13 @@
 # Exploration benchmarking
 
-This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite launches multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the bags + map snapshots for further analysis of the runs.
+This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite can be used to launch multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the bags + map snapshots for further analysis of the runs.
 
 The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
 
+An example of a project that uses this suite is available at [pierrebrd/exp_cov](https://github.com/pierrebrd/exp_cov).
+
 - [Cloning the project](#cloning-the-project)
-- [Installation guide - System](#installation-guide---system)
+- [Installation guide - System installation](#installation-guide---system-installation)
   - [Requirements](#requirements)
   - [Installing dependencies](#installing-dependencies)
   - [Building the package](#building-the-package)
@@ -33,13 +35,13 @@ cd exploration_benchmarking
 ```
 
 
-## Installation guide - System
+## Installation guide - System installation
 
 
 ### Requirements
 
 - ROS2 Humble on Ubuntu 22.04 Jammy
-- A python installation (preferably in a conda environment)
+- A Python installation (preferably conda/miniforge)
 
 
 ### Installing dependencies
@@ -71,7 +73,7 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-Note that there may be problems for the initial build if a conda environment is activated.
+Note that there may be problems for the initial build if the conda environment is activated.
 
 <!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY # Not needed anymore-->
 
@@ -119,6 +121,7 @@ The `params` folder contains the parameters file for the different parts of the 
 #### Config files
 
 The `configs` folder contains the configuration files for the different runs. 
+
 Each config file is a YAML file that contains the parameters for the run, such as the environment to use, the exploration algorithm to run, the SLAM algorithm, and the parameters files that should be used for each part of the simulation (navigation, exploration, etc.).
 
 For an example of the structure of this YAML file, see: [ros2_simulation/configs/example_gmapper.yaml](ros2_simulation/configs/example_gmapper.yaml)
@@ -180,16 +183,16 @@ After the simulation is finished, a benchmarking script analyze the results (ros
 The benchmarking script `benchmark.py` is a simple python script, not a ROS2 node. Launch it in a terminal:
 
 ```bash
-python3 benchmark.py relative/path/to/run/folder [--verbose]
+python3 benchmark.py relative/path/to/run/folder
 ```
 
 #### Benchmark metrics
 
 The benchmarking script uses evo to compute APE (Absolute Pose Error) and RPE (Relative Pose Error) metrics
 
-Planned metrics:
+Possible other metrics that are not implemented yet:
 - Time to obtain a complete map
 - Time to obtain a sufficiently complete map (e.g. using a criterion similar to the one presented [here](https://aislabunimi.github.io/explore-stop/))
 - Other ideas: difference with ground truth (deformation cost?), back and forth movements, performance in cluttered environments, multirobot exploration, etc.
 
-<!-- TODO -->
+**The "benchmarking" part of the project is not fully implemented, because it was not really useful for the other projects that used this suite.**
