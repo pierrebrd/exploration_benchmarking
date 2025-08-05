@@ -4,23 +4,36 @@ This project aims to provide a benchmarking suite for exploration algorithms of 
 
 The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
 
-- [Exploration benchmarking](#exploration-benchmarking)
-  - [Installation guide](#installation-guide)
-    - [Requirements](#requirements)
-    - [Cloning the project](#cloning-the-project)
-    - [Installing dependencies](#installing-dependencies)
-    - [Building the package](#building-the-package)
-  - [Usage](#usage)
-    - [Simulation](#simulation)
-      - [Parameters files](#parameters-files)
-      - [Config files](#config-files)
-      - [Launching a run](#launching-a-run)
-      - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
-    - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
-    - [Benchmarking](#benchmarking)
-      - [Benchmark metrics](#benchmark-metrics)
+- [Cloning the project](#cloning-the-project)
+- [Installation guide - System](#installation-guide---system)
+  - [Requirements](#requirements)
+  - [Installing dependencies](#installing-dependencies)
+  - [Building the package](#building-the-package)
+- [Installation guide - Docker](#installation-guide---docker)
+  - [Creating the Docker image](#creating-the-docker-image)
+  - [Building the workspace](#building-the-workspace)
+- [Usage](#usage)
+  - [Simulation](#simulation)
+    - [Parameters files](#parameters-files)
+    - [Config files](#config-files)
+    - [Launching a run](#launching-a-run)
+    - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
+  - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
+  - [Benchmarking](#benchmarking)
+    - [Benchmark metrics](#benchmark-metrics)
 
-## Installation guide
+
+## Cloning the project
+
+The project contains many submodules that need to be cloned as well:
+
+```bash
+git clone --recurse-submodules https://github.com/aislabunimi/exploration_benchmarking.git
+cd exploration_benchmarking
+```
+
+
+## Installation guide - System
 
 
 ### Requirements
@@ -28,12 +41,6 @@ The `ros2_simulation` folder is a ROS2 workspace that contains the packages and 
 - ROS2 Humble on Ubuntu 22.04 Jammy
 - A python installation (preferably in a conda environment)
 
-### Cloning the project
-
-```bash
-git clone --recurse-submodules https://github.com/aislabunimi/exploration_benchmarking.git
-cd exploration_benchmarking
-```
 
 ### Installing dependencies
 
@@ -73,6 +80,38 @@ rosdep install --from-paths src --ignore-src -r -y
    ```
 
 <!-- colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY # Not needed anymore-->
+
+## Installation guide - Docker
+
+### Creating the Docker image
+
+You can build a Docker image with the project and all its dependencies.
+
+```bash
+ docker build -t ros2humble:exploration_benchmarking .
+```
+
+In its current state, the Docker image doesn't contain the built packages, you can bind mouunt the workspace of your host machine to the container or create a docker volume. This is useful to avoid rebuilding the packages every time you start a new container, especially in development phase. You can edit the Dockerfile to build the packages directly in the image.
+
+### Building the workspace
+
+You can use the `docker-compose.yml` to launch a container with the bind mount:
+
+```bash
+docker compose up -d
+```
+
+And then run a bash shell in the container:
+
+```bash
+docker exec -it exploration_bench bash
+```
+
+You can the build the workspace (make sure to first delete the `build`, `install` and `log` folders in your local workspace to avoid conflicts)
+
+```bash
+colcon build --symlink-install
+```
 
 
 ## Usage

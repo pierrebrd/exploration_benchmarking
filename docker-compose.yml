@@ -6,17 +6,8 @@ services:
     volumes:
       # Bind mounts: current directory -> container
       - .:/root/exploration_benchmarking
-      # Named volumes: persist build artifacts across container runs
-      # - ros_build:/root/exploration_benchmarking/ros2_simulation/build
-      # - ros_install:/root/exploration_benchmarking/ros2_simulation/install
-      # - ros_log:/root/exploration_benchmarking/ros2_simulation/log
     environment:
-      # - DISPLAY=:99
       - ROS_DOMAIN_ID=42
     working_dir: /root/exploration_benchmarking/ros2_simulation
     stdin_open: true
     tty: true
-# volumes:
-#   ros_build:
-#   ros_install:
-#   ros_log:

@@ -52,13 +52,13 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | a
 
 RUN rosdep install --from-paths src --ignore-src -r -y --rosdistro humble
 
-# RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install --packages-select openslam_gmapping"
-# RUN /bin/bash -c "source /opt/ros/humble/setup.bash && source ${ROS_WS}/install/setup.bash && colcon build --symlink-install"
-# RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install --cmake-args -DOpenGL_GL_PREFERENCE=LEGACY"
-
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+
+# In case you dont want to do a bind mount of the built packages later, you can build the workspace here
+# RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install"
 # RUN echo "source ${ROS_WS}/install/setup.bash" >> ~/.bashrc
 
+# Stage needs to think there is a display
 ENV DISPLAY=:1
 ENV screen=0
 ENV resolution=800x600x24
@@ -66,7 +66,6 @@ RUN echo "Xvfb ${DISPLAY} -screen ${screen} ${resolution} &" >> ~/.bashrc
 
 # COPY launch.sh /root/launch.sh
 # RUN chmod +x /root/launch.sh
-
 # ENTRYPOINT ["/bin/bash", "-i", "/root/launch.sh"]
 
 CMD ["bash"]
