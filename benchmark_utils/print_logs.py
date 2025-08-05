@@ -1,25 +1,16 @@
-from html import parser
-from pyexpat.errors import messages
-import sys
-import time
-
 import rclpy
 from rclpy.serialization import deserialize_message
 import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
-import yaml
 import os
-import tf2_msgs.msg
-import evo
-import subprocess
-import json
-import zipfile
 import argparse
 from rcl_interfaces.msg import Log
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Benchmark a ROS2 simulation run")
+    parser = argparse.ArgumentParser(
+        description="Simply prints the logs from a ROS2 bag file, reading the /rosout topic"
+    )
     parser.add_argument(
         "run_path", help="Path to the run folder (should contain a 'rosbags' subfolder)"
     )

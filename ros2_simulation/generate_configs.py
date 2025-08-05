@@ -1,4 +1,6 @@
-# This file is used to generate the configs that can be find in the configs folder.
+"""
+This file is used to generate the configs that can be find in the configs folder.
+"""
 
 import sys
 import os
@@ -6,9 +8,6 @@ import yaml
 import datetime
 import time
 import argparse
-
-# def extract_uppercase(data):
-#     uppercase_configs = {}
 
 
 def parse_args():

@@ -6,14 +6,9 @@ import signal
 import time
 import subprocess
 import threading
-from PIL import Image
 
 import rclpy
-from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
 
-from visualization_msgs.msg import MarkerArray
-from rclpy.executors import MultiThreadedExecutor
 import yaml
 import shutil
 import argparse
@@ -170,7 +165,6 @@ def replay_from_bag(config_path, input_run_folder):
         # Launch the additional processes if specified
         for additional_process in additional_processes:
             running_processes.append(launch_generic(additional_process))
-            # time.sleep(2) # Add delay?
 
         # Then we launch the rosbag2 playing node
         rosbag2_playing_process = launch_rosbag2_playing(
@@ -278,6 +272,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    # explore_worlds(project_root, world_path)
     main()

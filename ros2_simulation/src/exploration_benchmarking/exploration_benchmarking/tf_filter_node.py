@@ -2,6 +2,11 @@ import rclpy
 from rclpy.node import Node
 from tf2_msgs.msg import TFMessage
 
+"""
+This node filters out TF messages, so that only the ones that are not in the 'map' frame are published.
+This is used in replay_from_bag.py
+"""
+
 
 class TfFilter(Node):
     def __init__(self):

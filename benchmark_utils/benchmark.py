@@ -1,16 +1,8 @@
-from html import parser
-from pyexpat.errors import messages
-import sys
-import time
-
 import rclpy
 from rclpy.serialization import deserialize_message
 import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
-import yaml
 import os
-import tf2_msgs.msg
-import evo
 import subprocess
 import json
 import zipfile
@@ -78,7 +70,7 @@ def evo_metrics(
     # Find the most recent file in the 'maps' directory
     maps_path = os.path.join(run_path, "maps")
 
-    if plot:
+    if plot:  # We want to hve a map to plot the results
         latest_map_file = None
         if os.path.isdir(maps_path):
             map_files = [
@@ -106,7 +98,7 @@ def evo_metrics(
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing ape_results.zip file
     ]
-    if align_origin:
+    if align_origin:  # Align the origin of the ground truth with the estimated pose
         cmd_ape += ["--align_origin"]
     if plot:
         cmd_ape += [
@@ -130,7 +122,7 @@ def evo_metrics(
         ),  # Save results in the same folder as the bag file
         "--no_warnings",  # Overwrite the existing rpe_results.zip file
     ]
-    if align_origin:
+    if align_origin:  # Align the origin of the ground truth with the estimated pose
         cmd_rpe += ["--align_origin"]
     if plot:
         cmd_rpe += [
@@ -257,13 +249,9 @@ def main():
 
     robot_path, goals, start_time, end_time = process_messages(messages)
 
-    # print(goals)
-    print(start_time, end_time)
+    print(f"Exploration started at {start_time}s and ended at {end_time}s")
     if start_time and end_time:
-        print(
-            f"Exploration started at {start_time}s and ended at {end_time}s, "
-            f"total duration: {end_time - start_time}s"
-        )
+        print(f"total duration: {end_time - start_time}s")
 
     ape_stats, rpe_stats = evo_metrics(
         run_path, "/ground_truth", "/tf:map.base_link", plot=True, align_origin=False

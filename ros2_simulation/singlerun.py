@@ -6,14 +6,9 @@ import signal
 import time
 import subprocess
 import threading
-from PIL import Image
 
 import rclpy
-from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
 
-from visualization_msgs.msg import MarkerArray
-from rclpy.executors import MultiThreadedExecutor
 import yaml
 import shutil
 import argparse
@@ -37,6 +32,9 @@ def parse_args():
 
 
 def kill_process(p):
+    """
+    Kills a process, first with SIGINT, then SIGTERM, and finally SIGKILL if it does not exit.
+    """
     try:
         pid = os.getpgid(p.pid)
         os.killpg(pid, signal.SIGINT)
@@ -54,12 +52,6 @@ def kill_process(p):
     except Exception as e:
         print(f"Failed to kill process: {e}")
     print("Process needed to be killed with SIGKILL!!")
-
-
-def explore_worlds(project_path, world_file):
-    out_dir = os.path.join(project_path, "runs", "outputs")
-    world_name = os.path.basename(world_file).replace(".world", "")
-    folder = os.path.join(out_dir, world_name)
 
 
 def launch_rosbag2_recording(topics, folder, use_sim_time=False):
@@ -108,6 +100,9 @@ def launch_roslaunchfile(
     launchfile_args=None,
     ros_args=None,
 ):
+    """
+    Launches a ROS2 launch file with the given parameters and arguments
+    """
     cmd = ["ros2", "launch", package, launchfile]
     if launchfile_args:
         for key, value in launchfile_args.items():
@@ -128,6 +123,9 @@ def launch_roslaunchfile(
 def launch_rosnode(
     package, node, params_file=None, other_params=None, args=None, ros_args=None
 ):
+    """
+    Launches a ROS2 node with the given parameters and arguments
+    """
     cmd = ["ros2", "run", package, node]
     if args:
         cmd += args
@@ -149,6 +147,9 @@ def launch_rosnode(
 
 
 def launch_generic(dict: dict):
+    """
+    Launches either a node or a launch file based on is_launch_file key in the dict.
+    """
     if dict["is_launch_file"]:
         process = launch_roslaunchfile(
             dict["package"],  # Will throw an error if the key is not found
@@ -358,7 +359,6 @@ def singlerun(config_path, output_folder):
         # Launch the additional processes if specified
         for additional_process in additional_processes:
             running_processes.append(launch_generic(additional_process))
-            # time.sleep(2) # Add delay?
 
         # Launch the simulation platform
         if simulation:
@@ -445,6 +445,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    # explore_worlds(project_root, world_path)
     main()
