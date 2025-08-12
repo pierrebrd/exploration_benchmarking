@@ -23,6 +23,11 @@ setup(
     description="Launch the benchmarking of an exploration algorithm",
     license="MIT",
     entry_points={
-        "console_scripts": ["tf_filter = exploration_benchmarking.tf_filter_node:main"],
+        "console_scripts": [
+            "tf_filter = exploration_benchmarking.tf_filter_node:main",
+            "distance_check = exploration_benchmarking.distance_check:main",
+            "laser_scan_check = exploration_benchmarking.laser_scan_check:main",
+            "nav_stack_listener = exploration_benchmarking.nav_stack_listener:main",
+        ],
     },
 )
