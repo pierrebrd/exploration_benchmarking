@@ -1,11 +1,33 @@
 # Exploration benchmarking
 
-This project aims to provide a benchmarking suite for exploration algorithms of indoor robots. It takes as an input an exploration algorithm that subscribes to defined topics, and publishes goals to the navigation stack (nav2). The benchmarking suite can be used to launch multiple runs, in different environments (clutter-free, cluttered, various sizes, etc.), and returns the results of the benchmark according to defined metrics, as well as the bags + map snapshots for further analysis of the runs.
 
-The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains python scripts to run the benchmarks and analyze the results.
+## About the project
+
+This project aims to provide a benchmarking suite for exploration algorithms of indoor robots.
+
+The project can be divided in 2 parts:
+- The simulation part, that launches runs according to a config file.
+- The benchmarking part, that analyses the output of the runs (ros2 bags, maps, other logs...)
 
 An example of a project that uses this suite is available at [pierrebrd/exp_cov](https://github.com/pierrebrd/exp_cov).
 
+The `ros2_simulation` folder is a ROS2 workspace that contains the packages and launch files needed to run the simulations, as well as the different configs/params and the scripts to generate them, and the `benchmark_utils` folder contains Python scripts to run the benchmarks and analyze the results.
+
+
+### Simulation part
+
+The simulation takes as an input a YAML config file that defines the different parts of the simulation and their parameters, such as the navigation stack, the exploration algorithm, the environment to simulate, the SLAM method, etc. It also launches the additional nodes that will make the benchmarking easier after the simulation.
+
+### Benchmarking part
+
+When a run is finished, the benchmarking script analyzes the results by looking at the generated maps and the bags containing logs and data sent on relevant topics, and can compute different metrics.
+
+More details on those 2 parts can be found in the [Usage](#usage) section.
+
+
+- [About the project](#about-the-project)
+  - [Simulation part](#simulation-part)
+  - [Benchmarking part](#benchmarking-part)
 - [Cloning the project](#cloning-the-project)
 - [Installation guide - System installation](#installation-guide---system-installation)
   - [Requirements](#requirements)
@@ -46,7 +68,7 @@ cd exploration_benchmarking
 
 ### Installing dependencies
 
-For the python environment:
+For the Python environment:
 
 ```bash
 conda env create -f environment-minimal.yml
@@ -180,7 +202,7 @@ The exploration algorithm should publish the following topics:
 
 After the simulation is finished, a benchmarking script analyze the results (rosbags, maps, etc.) and returns the results according to defined metrics. 
 
-The benchmarking script `benchmark.py` is a simple python script, not a ROS2 node. Launch it in a terminal:
+The benchmarking script `benchmark.py` is a simple Python script, not a ROS2 node. Launch it in a terminal:
 
 ```bash
 python3 benchmark.py relative/path/to/run/folder

@@ -6,18 +6,17 @@ rosbag2_recorded_topics: [
         "/odom", # robot odometry
         "/ground_truth", # ground truth robot position
         "/cmd_vel",
-        "/rosout", # logs, not really useful
-        "/goal_sent", # goals sent by the exploration algorithmFalse
+        "/rosout", # logs
+        "/goal_sent", # goals sent by the exploration algorithm
         "/goal_reached", # goals reached by the exploration algorithm
         "/clock", # clock, to use sim time
         "/scan", # Useful for replaying
         "/tf",
         "/tf_static",
-        # "-a",
     ]
 
 WORLD_NAME: ["E34-2"]
-# worlds_folder: "" # Optional, if the worlds are in a different folder than exploratio_benchmarking/worlds
+# worlds_folder: "" # Optional, if the worlds are in a different folder than exploration_benchmarking/worlds
 
 SLAM:
     - package: "gmapper" # Package containing the SLAM node /launch file

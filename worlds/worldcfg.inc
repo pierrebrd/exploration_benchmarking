@@ -1,4 +1,3 @@
-
 define hokuyolaser ranger
 (
 	sensor
@@ -34,29 +33,28 @@ define floorplan model
 
 define pioneer3at position
 (
-	color "red"          # Default color.
-	drive "diff"         # Differential steering model.
-	gui_nose 1           # Draw a nose on the robot so we can see which way it points
-	obstacle_return 1    # Can hit things.
-	laser_return 1	     # reflects sonar beams
+    color "red"          # Default color.
+    drive "diff"         # Differential steering model.
+    gui_nose 1           # Draw a nose on the robot so we can see which way it points
+    obstacle_return 1    # Can hit things.
+    laser_return 1	     # reflects sonar beams
+
+    # alternative odometric localization with simple error model
+    localization "odom"                 # Change to "gps" to have impossibly perfect, global odometry
+    odom_error [ 0.05 0.05 0 0.1]      # Odometry error or slip in X, Y and Theta (Uniform random distribution) # TODO
+    #localization "gps"
 
 
-	# alternative odometric localization with simple error model
-	localization "odom"                 # Change to "gps" to have impossibly perfect, global odometry
-	odom_error [ 0.05 0.05 0 0.1]      # Odometry error or slip in X, Y and Theta (Uniform random distribution) # TODO
-	#localization "gps"
+    # Actual size - increased for better visibility
+    size [0.4 0.3 0.2]  # Changed from [0.02 0.02 0.04] to make robot much more visible
 
+    # The pioneer's center of rotation is offset from its center of area
+    origin [0 0 0 0]
 
-	# Actual size
-	size [0.02 0.02 0.04]
+    # Estimated mass in KG
+    mass 2.0
 
-	# The pioneer's center of rotation is offset from its center of area
-	origin [0 0 0 0]
-
-	# Estimated mass in KG
-	mass 2.0
-
-	hokuyolaser()
+    hokuyolaser()
 )
 
 interval_sim 100  # simulation timestep in milliseconds

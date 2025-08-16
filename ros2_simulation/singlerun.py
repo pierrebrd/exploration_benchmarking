@@ -232,10 +232,6 @@ def singlerun(config_path, output_folder):
         for key in [
             "world_name",
             "rosbag2_recorded_topics",
-            "slam",
-            "exploration",
-            "navigation",
-            "simulation",
         ]
     ), "Missing required parameters"
 

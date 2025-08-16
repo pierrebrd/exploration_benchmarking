@@ -1,9 +1,11 @@
+map_saver_interval: 10 # seconds, wall time
+rviz_config: "rviz/explore-lite.rviz" # path to the rviz config file. If empty or if key is deleted, no rviz will be launched.
 rosbag2_recorded_topics: [
         "/odom", # robot odometry
         "/ground_truth", # ground truth robot position
         "/cmd_vel",
-        "/rosout", # logs, not really useful
-        "/goal_sent", # goals sent by the exploration algorithmFalse
+        "/rosout", # logs
+        "/goal_sent", # goals sent by the exploration algorithm
         "/goal_reached", # goals reached by the exploration algorithm
         "/clock", # clock, to use sim time
         "/scan", # Useful for replaying
@@ -11,10 +13,9 @@ rosbag2_recorded_topics: [
         "/tf_static",
         # "-a",
     ]
-map_saver_interval: 10 # seconds, wall time
+
 world_name: "E34-2" # Replace with the actual world name, without the .world extension.
 # worlds_folder: "" # Optional, if the worlds are in a different folder than exploratio_benchmarking/worlds
-rviz_config: "rviz/explore-lite.rviz" # path to the rviz config file. If empty or if key is deleted, no rviz will be launched.
 
 slam:
     package: "slam_toolbox" # Package containing the SLAM node /launch file
