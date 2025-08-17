@@ -173,7 +173,10 @@ def process_messages(messages):
 
     ground_truth_path = []  # list containing (clock, x, y)
     odometry_path = []  # list containing (clock, x, y)
-    distances = []  # list containing (clock, eucl., man_x, man_y, rot)
+    distances_traveled = []  # list containing (clock, eucl., man_x, man_y, rot)
+    closest_obstacles = (
+        []
+    )  # list containing (clock, distance, angle, obstacle_detected)
     current_time = 0.0  # Initialize current time
     start_time = None
     end_time = None
@@ -242,13 +245,24 @@ def process_messages(messages):
                 )
         elif topic == "/robot_distances":
             # We keep track of the distance travled by the robot
-            distances.append(
+            distances_traveled.append(
                 (
                     current_time,
                     data.euclidean_distance,
                     data.manhattan_distance_x,
                     data.manhattan_distance_y,
                     data.rotational_distance,
+                )
+            )
+
+        elif topic == "/closest_obstacle":
+            # We save the closest obstacle information
+            closest_obstacles.append(
+                (
+                    current_time,
+                    data.distance,
+                    data.angle,
+                    data.obstacle_detected,
                 )
             )
         elif not pose_initialized and topic == "/odom":
@@ -323,7 +337,8 @@ def process_messages(messages):
         ground_truth_path,
         odometry_path,
         estimated_path,
-        distances,
+        distances_traveled,
+        closest_obstacles,
         goals,
         start_time,
         end_time,
@@ -351,7 +366,8 @@ def main():
         ground_truth_path,
         odometry_path,
         estimated_path,
-        distances,
+        distances_traveled,
+        closest_obstacles,
         goals,
         start_time,
         end_time,
@@ -386,7 +402,7 @@ def main():
         for t, pos, orient in estimated_path
     ]
 
-    distances_dicts = [
+    distances_traveled_dicts = [
         {
             "time": t,
             "euclidean": eucl,
@@ -394,13 +410,24 @@ def main():
             "manhattan_y": man_y,
             "rotational": rot,
         }
-        for t, eucl, man_x, man_y, rot in distances
+        for t, eucl, man_x, man_y, rot in distances_traveled
+    ]
+
+    closest_obstacles_dicts = [
+        {
+            "time": t,
+            "distance": dist,
+            "angle": angle,
+            "obstacle_detected": detected,
+        }
+        for t, dist, angle, detected in closest_obstacles
     ]
 
     ground_truth_path_file = os.path.join(benchmark_path, "ground_truth_path.yaml")
     odometry_path_file = os.path.join(benchmark_path, "odometry_path.yaml")
     estimated_path_file = os.path.join(benchmark_path, "estimated_path.yaml")
-    distances_file = os.path.join(benchmark_path, "distances.yaml")
+    distances_traveled_file = os.path.join(benchmark_path, "distances_traveled.yaml")
+    closest_obstacles_file = os.path.join(benchmark_path, "closest_obstacles.yaml")
 
     with open(ground_truth_path_file, "w") as f:
         yaml.dump(
@@ -429,9 +456,22 @@ def main():
             sort_keys=False,
         )
 
-    with open(distances_file, "w") as f:
+    with open(distances_traveled_file, "w") as f:
         yaml.dump(
-            distances_dicts, f, default_flow_style=False, indent=4, sort_keys=False
+            distances_traveled_dicts,
+            f,
+            default_flow_style=False,
+            indent=4,
+            sort_keys=False,
+        )
+
+    with open(closest_obstacles_file, "w") as f:
+        yaml.dump(
+            closest_obstacles_dicts,
+            f,
+            default_flow_style=False,
+            indent=4,
+            sort_keys=False,
         )
 
     # Durations
@@ -443,13 +483,13 @@ def main():
         print(f"total duration: {end_time - start_time}s")
 
     # Final Distances
-    results["final_distances"] = {  # We save the last distance saved
-        "euclidean": distances[-1][1],
-        "manhattan_x": distances[-1][2],
-        "manhattan_y": distances[-1][3],
-        "rotational": distances[-1][4],
+    results["final_distances_traveled"] = {  # We save the last distance saved
+        "euclidean": distances_traveled[-1][1],
+        "manhattan_x": distances_traveled[-1][2],
+        "manhattan_y": distances_traveled[-1][3],
+        "rotational": distances_traveled[-1][4],
     }
-    print(f"Final distances: {results['final_distances']}")
+    print(f"Final distances traveled: {results['final_distances_traveled']}")
 
     # Evo metrics
     ape_stats, rpe_stats = evo_metrics(

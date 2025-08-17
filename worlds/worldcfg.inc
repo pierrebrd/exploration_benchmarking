@@ -46,7 +46,7 @@ define pioneer3at position
 
 
     # Actual size - increased for better visibility
-    size [0.4 0.3 0.2]  # Changed from [0.02 0.02 0.04] to make robot much more visible
+    size [0.02 0.02 0.04] # changed back from [0.4 0.3 0.2]  # Changed from  to make robot much more visible
 
     # The pioneer's center of rotation is offset from its center of area
     origin [0 0 0 0]

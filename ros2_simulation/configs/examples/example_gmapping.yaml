@@ -12,6 +12,7 @@ rosbag2_recorded_topics: [
         "/tf",
         "/tf_static",
         "/robot_distances", # Published by exploration_benchmarking/distance_check.py
+        "/closest_obstacle", # Published by exploration_benchmarking/laser_scan_check.py
         # "-a",
     ]
 
