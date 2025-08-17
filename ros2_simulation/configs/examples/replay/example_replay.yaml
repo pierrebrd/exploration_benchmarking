@@ -22,6 +22,7 @@ rosbag2_played_topics: [
     "/scan",
     "/tf",
     "/tf_static",
+    "/robot_distances", # Published by exploration_benchmarking/distance_check.py
   ]
 
 rate: 20.0 # Hz, the rate at which the bag is replayed

@@ -11,6 +11,7 @@ rosbag2_recorded_topics: [
         "/scan", # Useful for replaying
         "/tf",
         "/tf_static",
+        "/robot_distances", # Published by exploration_benchmarking/distance_check.py
         # "-a",
     ]
 
@@ -62,4 +63,15 @@ simulation:
         one_tf_tree: "false"
     ros_args: []
 
-additional_processes: [] # List of other nodes or launch files to run. The list containes dicts, with keys "package", "name", ...
+additional_processes: # List of other nodes or launch files to run. The list containes dicts, with keys "package", "name", ...
+    - package: "exploration_benchmarking"
+      name: "laser_scan_check"
+      is_launch_file: false
+      other_params:
+          distance_threshold: 0.6
+    - package: "exploration_benchmarking"
+      name: "distance_check"
+      is_launch_file: false
+    - package: "exploration_benchmarking"
+      name: "nav_stack_listener"
+      is_launch_file: false
