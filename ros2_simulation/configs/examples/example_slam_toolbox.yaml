@@ -69,9 +69,14 @@ additional_processes: # List of other nodes or launch files to run. The list con
       is_launch_file: false
       other_params:
           distance_threshold: 0.6
+          use_sim_time: "true"
     - package: "exploration_benchmarking"
       name: "distance_check"
       is_launch_file: false
+      other_params:
+          use_sim_time: "true"
     - package: "exploration_benchmarking"
       name: "nav_stack_listener"
       is_launch_file: false
+      other_params:
+          use_sim_time: "true"

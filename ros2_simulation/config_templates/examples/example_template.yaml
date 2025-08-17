@@ -25,7 +25,8 @@ SLAM:
       is_launch_file: false # Set to true if slam_name is a launch file, false if it is a node name.
       params_file_argument: "" # The name of the argument to pass the params file to the launchfile.
       launchfile_args: {} # For a launchfile
-      other_params: {} # Other params to override the params_file for a node
+      other_params: # Other params to override the params_file for a node
+      #  use_sim_time: "true" is included in the parameters file
       ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"] # Other arguments to pass to the CLI, without the "--ros-args" prefix.
       PARAMS_FILE: ["params/slam/gmapping_1.yaml"] # Relative Path to the SLAM parameters file for nodes, from the folder where singlerun.py is. if using a launchfile, the path will be passed on the params_file_argument.
 
@@ -56,7 +57,7 @@ exploration:
     name: "explore"
     is_launch_file: false
     params_file_argument: "" # Not used for a node
-    # other_params maybe i could put the use sim time here
+    # other_params: none: the use_sim_time is included in the parameters file
     launchfile_args: {}
     ros_args: ["--log-level", "info", "--log-level", "rcl:=warn"]
     PARAMS_FILE: ["params/exploration/params.yaml"]
@@ -79,9 +80,14 @@ additional_processes: # List of other nodes or launch files to run. The list con
       is_launch_file: false
       other_params:
           distance_threshold: 0.6
+          use_sim_time: "true"
     - package: "exploration_benchmarking"
       name: "distance_check"
       is_launch_file: false
+      other_params:
+          use_sim_time: "true"
     - package: "exploration_benchmarking"
       name: "nav_stack_listener"
       is_launch_file: false
+      other_params:
+          use_sim_time: "true"
