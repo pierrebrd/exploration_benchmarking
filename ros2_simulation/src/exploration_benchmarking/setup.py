@@ -24,6 +24,7 @@ setup(
             "distance_check = exploration_benchmarking.distance_check:main",
             "laser_scan_check = exploration_benchmarking.laser_scan_check:main",
             "nav_stack_listener = exploration_benchmarking.nav_stack_listener:main",
+            "estimated_pose_publisher = exploration_benchmarking.estimated_pose_publisher:main",
         ],
     },
 )

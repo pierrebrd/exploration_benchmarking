@@ -13,6 +13,7 @@ rosbag2_recorded_topics: [
         "/tf_static",
         "/robot_distances", # Published by exploration_benchmarking/distance_check.py
         "/closest_obstacle", # Published by exploration_benchmarking/laser_scan_check.py
+        "/estimated_pose", # Published by exploration_benchmarking/estimated_pose_publisher.py
         # "-a",
     ]
 
@@ -78,6 +79,11 @@ additional_processes: # List of other nodes or launch files to run. The list con
           use_sim_time: "true"
     - package: "exploration_benchmarking"
       name: "nav_stack_listener"
+      is_launch_file: false
+      other_params:
+          use_sim_time: "true"
+    - package: "exploration_benchmarking"
+      name: "estimated_pose_publisher"
       is_launch_file: false
       other_params:
           use_sim_time: "true"

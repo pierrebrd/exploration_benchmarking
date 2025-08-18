@@ -173,6 +173,7 @@ def process_messages(messages):
 
     ground_truth_path = []  # list containing (clock, x, y)
     odometry_path = []  # list containing (clock, x, y)
+    estimated_path = []  # list containing (clock, x, y)
     distances_traveled = []  # list containing (clock, eucl., man_x, man_y, rot)
     closest_obstacles = (
         []
@@ -180,13 +181,7 @@ def process_messages(messages):
     current_time = 0.0  # Initialize current time
     start_time = None
     end_time = None
-    # Then variables for estimated poses from tf
-    current_map_to_odom = None
-    current_odom_to_base_link = None
-    pose_initialized = False
-    initial_pose = None
-    current_pose = None
-    current_pose_tuple = None
+
     estimated_path = []
 
     for topic, data, timestamp in messages:
@@ -265,15 +260,7 @@ def process_messages(messages):
                     data.obstacle_detected,
                 )
             )
-        elif not pose_initialized and topic == "/odom":
-            # Initialize the pose from the first odom message
-            assert isinstance(data, Odometry)
-            initial_pose = data.pose.pose
-            pose_initialized = True
-            if verbose:
-                print(
-                    f"Initial pose set at {current_time}s: {initial_pose.position.x}, {initial_pose.position.y}"
-                )
+
         elif topic == "/odom":
             # We save the pure odometry
             odometry_path.append(
@@ -283,49 +270,20 @@ def process_messages(messages):
                     (data.pose.pose.orientation.z, data.pose.pose.orientation.w),
                 )
             )
-            if not pose_initialized:
-                # Initialize the pose from the first odom message
-                assert isinstance(data, Odometry)
-                initial_pose = data.pose.pose
-                pose_initialized = True
-                if verbose:
-                    print(
-                        f"Initial pose set at {current_time}s: {initial_pose.position.x}, {initial_pose.position.y}"
-                    )
-        elif topic == "/tf":
-            for transform in data.transforms:
-                # We only consider map->odom->base_link transform
-                if (
-                    transform.header.frame_id == "map"
-                    and transform.child_frame_id == "odom"
-                ):
-                    current_map_to_odom = transform
-                elif (
-                    transform.header.frame_id == "odom"
-                    and transform.child_frame_id == "base_link"
-                ):
-                    current_odom_to_base_link = transform
-                if (
-                    pose_initialized
-                    and current_map_to_odom
-                    and current_odom_to_base_link
-                ):
-                    current_pose = do_transform_pose(
-                        do_transform_pose(initial_pose, current_map_to_odom),
-                        current_odom_to_base_link,
-                    )
-                    current_pose_tuple = (
-                        current_time,
-                        (
-                            float(current_pose.position.x),
-                            float(current_pose.position.y),
-                        ),
-                        (
-                            float(current_pose.orientation.z),
-                            float(current_pose.orientation.w),
-                        ),
-                    )
-                    estimated_path.append(current_pose_tuple)
+
+        elif topic == "/estimated_pose":
+            # We save the estimated pose from the tf
+            estimated_path.append(
+                (
+                    data.header.stamp.sec + data.header.stamp.nanosec * 1e-9,
+                    (data.pose.position.x, data.pose.position.y),
+                    (data.pose.orientation.z, data.pose.orientation.w),
+                )
+            )
+            if verbose:
+                print(
+                    f"Estimated pose at {current_time}s: {data.pose.position.x}, {data.pose.position.y}"
+                )
 
         # Additional method to check for exploration completion
         elif topic == "/rosout":
@@ -493,7 +451,7 @@ def main():
 
     # Evo metrics
     ape_stats, rpe_stats = evo_metrics(
-        run_path, "/ground_truth", "/tf:map.base_link", plot=True, align_origin=False
+        run_path, "/ground_truth", "/estimated_pose", plot=True, align_origin=False
     )
     if ape_stats:
         print("APE stats:")
