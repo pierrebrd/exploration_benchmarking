@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO Currently I dont source it !!
 
 
 source /opt/ros/$ROS_DISTRO/setup.bash
