@@ -1,0 +1,28 @@
+
+    include "worldcfg.inc"
+    resolution 0.03
+    window
+    (
+    size [ 800 600 ] # in pixels
+    scale 30   # pixels per meter
+    center [ 0  0 ]
+    rotate [ 0.000  0.000 ]
+    show_data 1              # 1=on 0=off
+    )
+
+    # load an environment bitmap
+    floorplan
+    ( 
+    name "fp"
+    bitmap "img/E48-3.png"
+    size [16.0 15.166666666666666 0.500]
+    pose [ 0 0 0 0 ]
+    )
+
+    # Put a single robot into the world
+    pioneer3at
+    (
+    name "robot"
+    pose [6.266666666666667 5.8 0 0]
+    )
+    

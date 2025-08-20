@@ -21,6 +21,12 @@ def parse_args():
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs"),
         help="Optional output folder for generated configs",
     )
+    parser.add_argument(
+        "--worlds-dir",
+        required=False,
+        default=None,
+        help="Directory containing world files you want to create configs for. Setting this overrides the world_name variable in the template",
+    )
     return parser.parse_args()
 
 
@@ -66,6 +72,11 @@ def main():
     args = parse_args()
     input_yaml_path = os.path.abspath(args.input_yaml_path)
     output_folder = os.path.abspath(args.output_folder)
+    if args.worlds_dir:
+        worlds_dir = os.path.abspath(args.worlds_dir)
+        if not os.path.exists(worlds_dir):
+            print(f"Worlds directory does not exist: {worlds_dir}")
+            sys.exit(1)
 
     if not os.path.exists(input_yaml_path):
         print(f"Input YAML file does not exist: {input_yaml_path}")
@@ -85,6 +96,27 @@ def main():
     except Exception as e:
         print(f"Failed to read input YAML file {input_yaml_path}: {e}")
         sys.exit(1)
+
+    # If worlds_dir is provided, update the world_name in the input_data
+    if args.worlds_dir:
+        # Collect .world filenames from the provided directory (basenames, including extension)
+        world_files = []
+        for entry in os.listdir(worlds_dir):
+            full_path = os.path.join(worlds_dir, entry)
+            if os.path.isfile(full_path) and entry.lower().endswith(".world"):
+                world_files.append(entry[:-6])  # remove extension
+        world_files.sort()
+
+        if not world_files:
+            print(f"No .world files found in {worlds_dir}")
+            sys.exit(1)
+
+        input_data["WORLD_NAME"] = world_files
+        # remove the worlds_folder key and the world_name key if it exists
+        if "worlds_folder" in input_data:
+            del input_data["worlds_folder"]
+        if "world_name" in input_data:
+            del input_data["world_name"]
 
     # Create the folder for the generated configs
     generated_name = datetime.datetime.now().strftime("configs_%Y_%m_%d_%H_%M")

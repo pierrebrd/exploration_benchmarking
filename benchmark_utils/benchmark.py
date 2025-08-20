@@ -76,7 +76,7 @@ def evo_metrics(
     # Find the most recent file in the 'maps' directory
     maps_path = os.path.join(run_path, "maps")
 
-    if plot:  # We want to hve a map to plot the results
+    if plot:  # We want to have a map to plot the results
         latest_map_file = None
         if os.path.isdir(maps_path):
             map_files = [
