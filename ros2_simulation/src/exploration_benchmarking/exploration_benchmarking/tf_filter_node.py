@@ -28,8 +28,16 @@ class TfFilter(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = TfFilter()
-    rclpy.spin(node)
-    rclpy.shutdown()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Cleanup
+        if rclpy.ok():
+            node.destroy_node()
+            rclpy.try_shutdown()
 
 
 if __name__ == "__main__":

@@ -27,10 +27,13 @@ def main():
     configs_folder = os.path.abspath(args.configs_folder)
     output_folder = os.path.abspath(args.output_folder)
 
-    for config_file in os.listdir(configs_folder):
-        if config_file.endswith(".yaml"):
-            config_path = os.path.join(configs_folder, config_file)
-            singlerun(config_path, output_folder)
+    config_files = os.listdir(configs_folder)
+    config_files.sort()
+    config_files = [file for file in config_files if file.endswith(".yaml")]
+
+    for config_file in config_files:
+        config_path = os.path.join(configs_folder, config_file)
+        singlerun(config_path, output_folder)
 
 
 if __name__ == "__main__":

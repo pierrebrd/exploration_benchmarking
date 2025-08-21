@@ -53,7 +53,6 @@ def main():
 
     config_files = os.listdir(configs_folder)
     config_files.sort()
-    print(config_files)
     config_files = [file for file in config_files if file.endswith(".yaml")]
 
     pool = ThreadPoolExecutor(max_workers=n_containers)
