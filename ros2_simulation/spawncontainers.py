@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import argparse
 
 
-def spawn_container(config_file: str, i: int, mount_folder):
+def spawn_container(config_path: str, i: int, mount_folder, output_folder):
     domain_id = 100 + i
     launch_cmd = [
         "docker",
@@ -15,10 +15,10 @@ def spawn_container(config_file: str, i: int, mount_folder):
         "-v",
         f"{mount_folder}:/root/exploration_benchmarking/",
         "--entrypoint",
-        "/bin/bash -i /root/exploration_benchmarking/launch.sh",
+        "/bin/bash",
         "ros2humble:exploration_benchmarking",
-        config_file,
-        "",
+        "/root/exploration_benchmarking/launch.sh",
+        config_path,
     ]
     subprocess.run(launch_cmd)
 
@@ -53,14 +53,27 @@ def main():
 
     config_files = os.listdir(configs_folder)
     config_files.sort()
-
+    print(config_files)
     config_files = [file for file in config_files if file.endswith(".yaml")]
 
     pool = ThreadPoolExecutor(max_workers=n_containers)
     try:
         futures = []
         for i, config_file in enumerate(config_files):
-            futures.append(pool.submit(spawn_container, config_file, i, mount_folder))
+            # Find the subpath after 'exploration_benchmarking' in configs_folder
+            split_path = configs_folder.split("exploration_benchmarking", 1)
+            if len(split_path) > 1:
+                sub_path = split_path[1].lstrip(os.sep)
+                config_path = os.path.join(
+                    "/root/exploration_benchmarking", sub_path, config_file
+                )
+            else:
+                config_path = os.path.join("root/exploration_benchmarking", config_file)
+            futures.append(
+                pool.submit(
+                    spawn_container, config_path, i, mount_folder, output_folder
+                )
+            )
         pool.shutdown(wait=True)
     except Exception as e:
         print(f"Error: {e}")
