@@ -5,9 +5,14 @@
 
 This project aims to provide a benchmarking suite for exploration algorithms of indoor robots.
 
+Details on the project can be found in the internship report available [here](https://github.com/aislabunimi/exploration_benchmarking/tree/report) in the `report` branch.
+
 The project can be divided in 2 parts:
 - The simulation part, that launches runs according to a config file.
 - The benchmarking part, that analyses the output of the runs (ros2 bags, maps, other logs...)
+
+The following diagram illustrates the framework design:
+![Framework design](docs/design.png)
 
 An example of a project that uses this suite is available at [pierrebrd/exp_cov](https://github.com/pierrebrd/exp_cov).
 
@@ -42,7 +47,7 @@ More details on those 2 parts can be found in the [Usage](#usage) section.
     - [Config files](#config-files)
     - [Launching a run](#launching-a-run)
     - [Replaying a run with a new config](#replaying-a-run-with-a-new-config)
-  - [Exploration algorithm inputs and outputs](#exploration-algorithm-inputs-and-outputs)
+  - [Inputs and outputs](#inputs-and-outputs)
   - [Benchmarking](#benchmarking)
     - [Benchmark metrics](#benchmark-metrics)
 
@@ -146,6 +151,8 @@ The `configs` folder contains the configuration files for the different runs.
 
 Each config file is a YAML file that contains the parameters for the run, such as the environment to use, the exploration algorithm to run, the SLAM algorithm, and the parameters files that should be used for each part of the simulation (navigation, exploration, etc.).
 
+![Config files' design](docs/config-files-design.png)
+
 For an example of the structure of this YAML file, see: [ros2_simulation/configs/example_gmapper.yaml](ros2_simulation/configs/example_gmapper.yaml)
 
 The configs can be generated from a template YAML file using the `generate_configs.py` script. This script reads a template YAML file and generates multiple configs based on the parameters defined in the template.
@@ -183,20 +190,23 @@ source install/setup.bash
 python3 replay_from_bag.py configs/replay/example_replay.yaml ../runs/original_run_folder
 ```
 
-### Exploration algorithm inputs and outputs
+### Inputs and outputs
 
-The exploration algorithm should subscribe to the following topics:
-- `/map` (nav_msgs/msg/OccupancyGrid): the map of the environment
-- `explore/resume` (std_msgs/msg/Bool): a boolean to stop the exploration (`False`) or to resume it (`True`)
-  
-Those topics are optional:
-- `map_updates` (nav_msgs/msg/OccupancyGrid): the map updates
-- `/clock` (rosgraph_msgs/msg/Clock): clock topic used to synchronize nodes when using simulation time to speed up the simulation
+To facilitate the communication between the different nodes, some standardized topics are defined
 
-The exploration algorithm should publish the following topics:
-- `goal_sent` (geometry_msgs/msg/Point), when a goal is sent to the navigation stack
-- `goal_reached` (geometry_msgs/msg/Point), when a goal is reached by the robot, or when the exploration is stopped manually or automatically (in this case, the Point is (0, 0, 0)).
-<!-- TODO: add the specifications of the slam, tf, .... -->
+- `/cmd_vel`: robot velocity commands sent to the robot
+- `/ground_truth`: ground truth robot pose (from the simulator)
+- `/odom`: robot odometry (from the simulator)
+- `/scan`: laser scan (LIDAR) data
+- `/map`: map produced by the SLAM method (nav_msgs/msg/OccupancyGrid)
+- `/tf` and `/tf_static`: transform tree frames
+- `/clock`:clock topic used to synchronize nodes when using simulation time to speed up the simulation
+- `/goal_sent`: goals sent by the exploration algorithm to the navigation stack (for logging)
+- `/goal_reached`: goals reached (or final stop) reported by the exploration algorithm (for logging)
+- `/explore/resume`: std_msgs/msg/Bool to pause (False) or resume (True) exploration
+
+Regarding the transform tree, the `base_link`, `odom` and `map` frames are used for the robot's estimated position by the SLAM method
+
 
 ### Benchmarking
 
@@ -210,7 +220,9 @@ python3 benchmark.py relative/path/to/run/folder
 
 #### Benchmark metrics
 
-The benchmarking script uses evo to compute APE (Absolute Pose Error) and RPE (Relative Pose Error) metrics
+The benchmarking script uses evo to compute APE (Absolute Pose Error) and RPE (Relative Pose Error) metrics.
+
+Some other basic metrics are implemented, with the help of several additional nodes created to improve the benchmarking process.
 
 Possible other metrics that are not implemented yet:
 - Time to obtain a complete map
